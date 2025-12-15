@@ -1,14 +1,68 @@
 version: "3.9"
 
 services:
+  mysql:
+    image: mysql:8.0
+    container_name: sc_mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpassword
+      - MYSQL_DATABASE=socialnetwork_db
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    ports:
+      - "3306:3306" 
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: sc_minio
+    environment:
+      - MINIO_ROOT_USER=minio-access-key
+      - MINIO_ROOT_PASSWORD=minio-secret-key
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1
+    container_name: sc_keycloak
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    command: start-dev
+    ports:
+      - "8180:8080"
+    restart: unless-stopped
+
   backend:
     build:
       context: ./SocialNetwork
+    container_name: sc_backend
     ports:
       - "8080:8080"
     environment:
-      - JAVA_OPTS=
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/socialnetwork_db?useSSL=false&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=user
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_EXTERNAL_URL=http://localhost:9000
+      - MINIO_ACCESS_KEY=minio-access-key
+      - MINIO_SECRET_KEY=minio-secret-key
+      - MINIO_BUCKET_NAME=socialnetwork-chat
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/social-network/protocol/openid-connect/certs
     restart: unless-stopped
+    depends_on:
+      - mysql 
+      - minio
+      - keycloak
 
   frontend:
     build:
@@ -17,8 +71,11 @@ services:
       - "4200:4200"
     environment:
       - PORT=4200
-      - API_URL=http://localhost:8080
+      - API_URL=http://localhost:8080/
     depends_on:
       - backend
     restart: unless-stopped
 
+volumes:
+  mysql_data: 
+  minio_data:
