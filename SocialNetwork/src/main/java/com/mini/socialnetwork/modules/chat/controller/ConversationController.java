@@ -15,38 +15,66 @@ import com.mini.socialnetwork.modules.chat.entity.Conversation;
 import com.mini.socialnetwork.modules.chat.entity.Message;
 import com.mini.socialnetwork.modules.chat.repository.ConversationRepository;
 import com.mini.socialnetwork.modules.chat.repository.MessageRepository;
+import com.mini.socialnetwork.modules.chat.service.MessageService;
 
 import java.time.Instant;
 import java.util.List;
 
 /**
- * REST controller for managing conversations and messages.
+ * REST Controller quản lý cuộc hội thoại và tin nhắn.
  * <p>
- * Provides endpoints for retrieving user conversations and messages within conversations.
- * Supports cursor-based pagination for efficient data retrieval and enforces access control
- * to ensure users can only access their own conversations.
+ * Controller này cung cấp các endpoint REST để:
+ * <ul>
+ *   <li>Lấy danh sách cuộc hội thoại của người dùng</li>
+ *   <li>Lấy lịch sử tin nhắn trong một cuộc hội thoại</li>
+ * </ul>
+ * Sử dụng cursor-based pagination để tối ưu hiệu suất và hỗ trợ infinite scroll.
  * </p>
+ *
+ * <h2>Phân quyền:</h2>
+ * <p>
+ * Tất cả endpoint yêu cầu JWT token hợp lệ. Người dùng chỉ có thể truy cập
+ * các cuộc hội thoại mà họ là participant.
+ * </p>
+ *
+ * @author MiniSocialNetwork Team
+ * @version 1.0
  */
 @RestController
 @RequestMapping("/api/conversations")
 @RequiredArgsConstructor
 public class ConversationController {
 
+    /** Repository truy cập dữ liệu tin nhắn */
     private final MessageRepository messageRepository;
+
+    /** Repository truy cập dữ liệu cuộc hội thoại */
     private final ConversationRepository conversationRepository;
 
     /**
-     * Retrieves all conversations for the authenticated user with cursor-based pagination.
+     * Lấy danh sách cuộc hội thoại của người dùng hiện tại với cursor-based pagination.
      * <p>
-     * Conversations are sorted by updated date in descending order, followed by ID for consistency.
-     * Supports cursor-based pagination using the updatedAt timestamp and conversation ID.
+     * Cuộc hội thoại được sắp xếp theo thời gian cập nhật (mới nhất trước),
+     * sau đó theo ID để đảm bảo tính nhất quán khi có cùng updatedAt.
      * </p>
      *
-     * @param cursorUpdatedAt the timestamp cursor for pagination (optional)
-     * @param cursorId the conversation ID cursor for pagination (optional)
-     * @param size the number of conversations to retrieve (default: 15)
-     * @param jwt the JWT token of the authenticated user
-     * @return a list of conversations for the user
+     * <h3>Cursor-based Pagination:</h3>
+     * <p>
+     * Thay vì offset-based (page number), sử dụng cursor với cặp (updatedAt, id)
+     * để đảm bảo không bỏ sót hoặc lặp dữ liệu khi có thay đổi realtime.
+     * </p>
+     *
+     * <h3>Cách sử dụng:</h3>
+     * <ul>
+     *   <li>Lần đầu: Không truyền cursor</li>
+     *   <li>Các lần sau: Truyền updatedAt và id của item cuối cùng từ lần trước</li>
+     * </ul>
+     *
+     * @param cursorUpdatedAt timestamp cursor cho pagination (tùy chọn, ISO format)
+     * @param cursorId ID cursor cho pagination (tùy chọn)
+     * @param size số lượng cuộc hội thoại cần lấy (mặc định: 15)
+     * @param jwt JWT token của người dùng đang đăng nhập
+     * @return danh sách cuộc hội thoại của người dùng
      */
     @GetMapping
     public ResponseEntity<List<Conversation>> getUserConversations(
@@ -56,30 +84,44 @@ public class ConversationController {
             @AuthenticationPrincipal Jwt jwt) {
 
         String currentUserId = jwt.getSubject();
-        PageRequest pageable = PageRequest.of(0, size, Sort.by("updatedAt").descending().and(Sort.by("id").descending()));
+        PageRequest pageable = PageRequest.of(0, size,
+                Sort.by("updatedAt").descending().and(Sort.by("id").descending()));
         List<Conversation> conversations;
 
         if (cursorUpdatedAt == null || cursorId == null) {
-            conversations = conversationRepository.findByParticipantIdsContainingOrderByUpdatedAtDescIdDesc(currentUserId, pageable);
+            conversations = conversationRepository
+                    .findByParticipantIdsContainingOrderByUpdatedAtDescIdDesc(currentUserId, pageable);
         } else {
-            conversations = conversationRepository.findByParticipantIdsWithCursor(currentUserId, cursorUpdatedAt, cursorId, pageable);
+            conversations = conversationRepository.findByParticipantIdsWithCursor(currentUserId, cursorUpdatedAt,
+                    cursorId, pageable);
         }
         return ResponseEntity.ok(conversations);
     }
 
     /**
-     * Retrieves messages for a specific conversation with cursor-based pagination.
+     * Lấy danh sách tin nhắn trong một cuộc hội thoại với cursor-based pagination.
      * <p>
-     * Enforces access control by verifying that the authenticated user is a participant
-     * in the conversation. Messages are sorted by ID in descending order (newest first).
+     * Kiểm tra quyền truy cập bằng cách xác minh người dùng hiện tại là participant
+     * của cuộc hội thoại. Tin nhắn được sắp xếp theo ID giảm dần (mới nhất trước).
      * </p>
      *
-     * @param conversationId the ID of the conversation
-     * @param cursor the message ID cursor for pagination (optional)
-     * @param size the number of messages to retrieve (default: 20)
-     * @param jwt the JWT token of the authenticated user
-     * @return a list of messages in the conversation
-     * @throws ResponseStatusException with HTTP 403 if the user is not a participant in the conversation
+     * <h3>Cursor-based Pagination:</h3>
+     * <p>
+     * Sử dụng message ID làm cursor. Truyền ID của tin nhắn cuối cùng
+     * để lấy các tin nhắn cũ hơn (infinite scroll từ dưới lên).
+     * </p>
+     *
+     * <h3>Phân quyền:</h3>
+     * <p>
+     * Trả về 403 Forbidden nếu người dùng không phải participant của cuộc hội thoại.
+     * </p>
+     *
+     * @param conversationId ID của cuộc hội thoại
+     * @param cursor ID tin nhắn cursor cho pagination (tùy chọn)
+     * @param size số lượng tin nhắn cần lấy (mặc định: 20)
+     * @param jwt JWT token của người dùng đang đăng nhập
+     * @return danh sách tin nhắn trong cuộc hội thoại
+     * @throws ResponseStatusException 403 nếu người dùng không phải participant
      */
     @GetMapping("/{conversationId}/messages")
     public ResponseEntity<List<Message>> getMessages(
@@ -89,7 +131,7 @@ public class ConversationController {
             @AuthenticationPrincipal Jwt jwt) {
 
         String currentUserId = jwt.getSubject();
-        
+
         conversationRepository.findById(conversationId)
                 .filter(conv -> conv.getParticipantIds().contains(currentUserId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied"));
@@ -100,9 +142,9 @@ public class ConversationController {
         if (cursor == null) {
             messages = messageRepository.findByConversationIdOrderByIdDesc(conversationId, pageable);
         } else {
-            messages = messageRepository.findByConversationIdAndIdLessThanOrderByIdDesc(conversationId, cursor, pageable);
+            messages = messageRepository.findByConversationIdAndIdLessThanOrderByIdDesc(conversationId, cursor,
+                    pageable);
         }
-
         return ResponseEntity.ok(messages);
     }
 }

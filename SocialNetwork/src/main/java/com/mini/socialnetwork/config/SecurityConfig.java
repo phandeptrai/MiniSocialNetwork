@@ -13,20 +13,55 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 
 /**
- * Security configuration for OAuth2 resource server with JWT authentication.
+ * Cấu hình bảo mật cho OAuth2 Resource Server với xác thực JWT.
  * <p>
- * Configures Spring Security to validate JWT tokens using a JWK Set endpoint.
- * Enables WebSocket connections and requires authentication for all other
- * endpoints.
+ * Lớp này cấu hình Spring Security để xác thực người dùng thông qua JWT token
+ * được cấp bởi Keycloak. Backend hoạt động như một Resource Server, nghĩa là nó
+ * chỉ xác minh token mà không tự cấp token.
  * </p>
+ *
+ * <h2>Luồng xác thực:</h2>
+ * <ol>
+ *   <li>Client lấy JWT token từ Keycloak</li>
+ *   <li>Client gửi token trong header "Authorization: Bearer {token}"</li>
+ *   <li>Backend xác minh chữ ký token qua JWK Set URI của Keycloak</li>
+ *   <li>Nếu hợp lệ, request được xử lý; nếu không, trả về 401 Unauthorized</li>
+ * </ol>
+ *
+ * <h2>Quy tắc phân quyền:</h2>
+ * <ul>
+ *   <li>Endpoint WebSocket (/ws/**): Cho phép truy cập không cần xác thực (xác thực riêng qua STOMP)</li>
+ *   <li>Tất cả endpoint khác: Yêu cầu JWT token hợp lệ</li>
+ * </ul>
+ *
+ * @author MiniSocialNetwork Team
+ * @version 1.0
+ * @see org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
+ * @see com.mini.socialnetwork.modules.chat.security.WebSocketAuthInterceptor
  */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /** URI để lấy JWK Set từ Keycloak dùng cho việc xác minh chữ ký JWT */
     @Value("${spring.security.oauth2.resourceserver.jwt.jwk-set-uri}")
     private String jwkSetUri;
 
+    /**
+     * Cấu hình chuỗi filter bảo mật cho HTTP requests.
+     * <p>
+     * Phương thức này định nghĩa:
+     * <ul>
+     *   <li>Vô hiệu hóa CSRF (không cần thiết cho stateless API)</li>
+     *   <li>Quy tắc phân quyền cho các endpoint</li>
+     *   <li>Cấu hình OAuth2 Resource Server với JWT decoder</li>
+     * </ul>
+     * </p>
+     *
+     * @param http builder để cấu hình HttpSecurity
+     * @return SecurityFilterChain đã được cấu hình
+     * @throws Exception nếu có lỗi trong quá trình cấu hình
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -40,15 +75,21 @@ public class SecurityConfig {
     }
 
     /**
-     * Creates a JwtDecoder bean using a JWK Set URI endpoint.
+     * Tạo bean JwtDecoder để giải mã và xác minh JWT token.
      * <p>
-     * This custom bean overrides Spring Boot's auto-configuration and validates
-     * JWT tokens using the provided jwk-set-uri. The decoder validates token
-     * signature and expiration time but does not enforce issuer validation,
-     * allowing flexibility in token validation rules.
+     * Bean này sử dụng JWK Set URI của Keycloak để lấy public key và xác minh
+     * chữ ký của JWT token. Nimbus là thư viện được Spring Security sử dụng
+     * mặc định cho việc xử lý JWT.
      * </p>
      *
-     * @return a configured NimbusJwtDecoder instance
+     * <h3>Quy trình xác minh:</h3>
+     * <ol>
+     *   <li>Lấy public key từ JWK Set endpoint</li>
+     *   <li>Xác minh chữ ký của token</li>
+     *   <li>Kiểm tra thời gian hết hạn (exp claim)</li>
+     * </ol>
+     *
+     * @return NimbusJwtDecoder đã được cấu hình với JWK Set URI
      */
     @Bean
     public JwtDecoder jwtDecoder() {
@@ -56,15 +97,29 @@ public class SecurityConfig {
     }
 
     /**
-     * Creates a JwtAuthenticationConverter bean for extracting roles from JWT
-     * tokens.
+     * Tạo bean JwtAuthenticationConverter để trích xuất quyền từ JWT token.
      * <p>
-     * Configures the converter to read authorities from the "realm_access" claim
-     * in the JWT token and maps them to Spring Security roles with "ROLE_" prefix.
-     * This is essential for role-based access control in the application.
+     * Converter này đọc các role từ claim "realm_access" trong JWT token
+     * và ánh xạ chúng thành các GrantedAuthority của Spring Security với
+     * prefix "ROLE_".
      * </p>
      *
-     * @return a configured JwtAuthenticationConverter instance
+     * <h3>Cấu trúc claim trong Keycloak JWT:</h3>
+     * <pre>
+     * {
+     *   "realm_access": {
+     *     "roles": ["user", "admin"]
+     *   }
+     * }
+     * </pre>
+     *
+     * <h3>Kết quả ánh xạ:</h3>
+     * <ul>
+     *   <li>"user" → ROLE_user</li>
+     *   <li>"admin" → ROLE_admin</li>
+     * </ul>
+     *
+     * @return JwtAuthenticationConverter đã được cấu hình
      */
     @Bean
     public JwtAuthenticationConverter jwtAuthenticationConverter() {

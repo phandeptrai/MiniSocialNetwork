@@ -2,7 +2,7 @@ import { inject, Injectable, Injector, PLATFORM_ID } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { filter } from 'rxjs/operators';
 import { authConfig } from './auth.config';
-import { User } from '../../features/chat/models/user';
+import { BehaviorSubject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({ providedIn: 'root' })
@@ -10,8 +10,11 @@ export class AuthService {
 
   private platformId = inject(PLATFORM_ID);
   private oauthService!: OAuthService;
+  private tokenReadySubject = new BehaviorSubject<boolean>(false);
+  tokenReady$ = this.tokenReadySubject.asObservable();
 
-  constructor(private injector: Injector) {}
+
+  constructor(private injector: Injector) { }
 
   private getOAuth(): OAuthService | null {
     if (!isPlatformBrowser(this.platformId)) {
@@ -37,10 +40,15 @@ export class AuthService {
       .pipe(filter(e => e.type === 'token_received'))
       .subscribe(() => this.handleNewToken());
 
-    await oauth.loadDiscoveryDocumentAndTryLogin();
+    try {
+      await oauth.loadDiscoveryDocumentAndTryLogin();
+      oauth.setupAutomaticSilentRefresh();
 
-    if (this.isAuthenticated()) {
-      this.handleNewToken();
+      if (this.isAuthenticated()) {
+        this.handleNewToken();
+      }
+    } catch (error) {
+      console.error('OAuth init error:', error);
     }
   }
 
@@ -73,5 +81,9 @@ export class AuthService {
       name: claims.name || claims.preferred_username,
       avatarUrl: claims.picture
     });
+
+    // 🔥 BÁO HIỆU TOKEN SẴN SÀNG
+    this.tokenReadySubject.next(true);
   }
+
 }

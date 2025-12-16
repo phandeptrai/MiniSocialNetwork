@@ -1,0 +1,67 @@
+<div class="conversation-list">
+  <!-- Search bar -->
+  <div class="search-container">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    <input type="text" placeholder="Search conversations..." class="search-input" />
+  </div>
+
+  <!-- Loading state -->
+  <div class="loading-container" *ngIf="isLoading$ | async">
+    <div class="loading-spinner"></div>
+    <span>Loading conversations...</span>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="!(isLoading$ | async) && (conversations$ | async)?.length === 0">
+    <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+    </svg>
+    <p>No conversations yet</p>
+    <button class="btn-start-chat" (click)="startNewConversation()">Start a new chat</button>
+  </div>
+
+  <!-- Conversation items -->
+  <div class="conversations-wrapper" #conversationsWrapper (scroll)="onScroll($event)">
+    <div 
+      class="conversation-item"
+      *ngFor="let conv of conversations$ | async"
+      [class.active]="(selectedConversation$ | async)?.id === conv.id"
+      (click)="selectConversation(conv)">
+      
+      <div class="avatar">
+        <img 
+          *ngIf="conv.displayAvatarUrl" 
+          [src]="conv.displayAvatarUrl" 
+          [alt]="conv.displayName"
+          class="avatar-img" />
+        <div *ngIf="!conv.displayAvatarUrl" class="avatar-placeholder">
+          {{ conv.displayName?.charAt(0)?.toUpperCase() || 'U' }}
+        </div>
+        <span class="online-indicator" *ngIf="conv.type === 'ONE_TO_ONE'"></span>
+      </div>
+
+      <div class="conversation-info">
+        <div class="conversation-header">
+          <h4 class="conversation-name">{{ conv.displayName || conv.name || 'Unnamed' }}</h4>
+          <span class="conversation-time">{{ conv.updatedAt | date:'shortTime' }}</span>
+        </div>
+        <p class="conversation-preview">
+          <span *ngIf="conv.lastMessageType === 'IMAGE'">📷 Photo</span>
+          <span *ngIf="conv.lastMessageType === 'FILE' || conv.lastMessageType === 'ATTACHMENT'">📎 Attachment</span>
+          <span *ngIf="conv.lastMessageType === 'TEXT' || !conv.lastMessageType">
+            {{ conv.lastMessageContent || 'No messages yet' }}
+          </span>
+        </p>
+      </div>
+
+      <div class="conversation-badge" *ngIf="conv.type === 'GROUP'">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 8c0-2.67 5.33-4 6-4s6 1.33 6 4v1H6v-1z"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>

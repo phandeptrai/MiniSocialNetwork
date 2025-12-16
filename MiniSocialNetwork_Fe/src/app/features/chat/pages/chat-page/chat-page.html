@@ -1,1 +1,20 @@
-<p>chat-page works!</p>
+<div class="chat-container">
+  <!-- Sidebar - Danh sách hội thoại -->
+  <aside class="chat-sidebar">
+    <div class="sidebar-header">
+      <h2 class="app-title">
+        <svg class="app-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        Messages
+      </h2>
+    </div>
+    <app-component-list></app-component-list>
+  </aside>
+
+  <!-- Main chat area -->
+  <main class="chat-main">
+    <app-message-list></app-message-list>
+    <app-message-input></app-message-input>
+  </main>
+</div>

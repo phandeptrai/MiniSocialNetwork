@@ -20,37 +20,65 @@ import com.mini.socialnetwork.modules.chat.service.MessageService;
 import java.util.Collections;
 
 /**
- * WebSocket controller for real-time chat messaging using STOMP protocol.
+ * WebSocket Controller xử lý tin nhắn chat real-time qua giao thức STOMP.
  * <p>
- * Handles message sending and deletion through WebSocket connections.
- * Uses Spring Security for authentication via JWT tokens and ensures
- * messages are delivered only to authorized conversation participants.
+ * Controller này nhận và xử lý các message từ client qua WebSocket,
+ * bao gồm gửi tin nhắn mới và xóa tin nhắn. Sử dụng SimpMessagingTemplate
+ * để broadcast tin nhắn đến các participant trong cuộc hội thoại.
  * </p>
+ *
+ * <h2>Các endpoint STOMP:</h2>
+ * <ul>
+ *   <li><strong>/app/chat.sendMessage</strong>: Gửi tin nhắn mới</li>
+ *   <li><strong>/app/chat.deleteMessage</strong>: Xóa tin nhắn</li>
+ * </ul>
+ *
+ * <h2>Mô hình gửi tin:</h2>
+ * <ul>
+ *   <li>Tin nhắn mới: Gửi đến /user/{userId}/queue/messages cho từng participant</li>
+ *   <li>Xóa tin nhắn: Broadcast đến /topic/conversation/{conversationId}</li>
+ * </ul>
+ *
+ * @author MiniSocialNetwork Team
+ * @version 1.0
+ * @see com.mini.socialnetwork.config.WebSocketConfig
  */
 @Controller
 @RequiredArgsConstructor
 @Slf4j
 public class ChatSocketController {
 
+    /** Template để gửi message đến các destination STOMP */
     private final SimpMessagingTemplate messagingTemplate;
+
+    /** Service xử lý logic nghiệp vụ cho tin nhắn */
     private final MessageService messageService;
+
+    /** Repository truy cập dữ liệu cuộc hội thoại */
     private final ConversationRepository conversationRepository;
 
     /**
-     * Handles incoming messages from clients and broadcasts them to conversation participants.
+     * Xử lý tin nhắn mới từ client và gửi đến tất cả participant.
      * <p>
-     * This endpoint processes new messages in two modes:
+     * Phương thức này xử lý hai trường hợp:
      * <ul>
-     *   <li>If conversationId is provided, adds message to the existing conversation</li>
-     *   <li>If recipientId is provided, finds or creates a one-to-one conversation</li>
+     *   <li>Có conversationId: Thêm tin nhắn vào cuộc hội thoại đã tồn tại</li>
+     *   <li>Có recipientId: Tìm hoặc tạo cuộc hội thoại 1-1 mới</li>
      * </ul>
-     * Messages are enriched with presigned URLs for file attachments before being sent
-     * to participants through their private queues.
+     * Sau khi lưu tin nhắn, broadcast đến tất cả participant qua queue riêng.
      * </p>
      *
-     * @param request the message request containing content, attachments, and conversation details
-     * @param authentication the authentication object containing the JWT token
-     * @throws IllegalStateException if the conversation cannot be found after message creation
+     * <h3>Flow xử lý:</h3>
+     * <ol>
+     *   <li>Trích xuất senderId từ JWT</li>
+     *   <li>Gọi MessageService để tạo và lưu tin nhắn</li>
+     *   <li>Lấy danh sách participant từ conversation</li>
+     *   <li>Gửi tin nhắn đến /user/{participantId}/queue/messages cho từng người</li>
+     * </ol>
+     *
+     * @param request yêu cầu gửi tin nhắn chứa nội dung, file đính kèm, và thông tin cuộc hội thoại
+     * @param authentication đối tượng xác thực chứa JWT token của người gửi
+     * @throws IllegalStateException nếu không tìm thấy cuộc hội thoại sau khi tạo tin nhắn
      * @see SendMessageRequest
      */
     @MessageMapping("/chat.sendMessage")
@@ -61,33 +89,39 @@ public class ChatSocketController {
 
         Message savedMessage = messageService.createMessage(request, senderId);
 
-        Message enrichedMessage = messageService.enrichMessagesWithUrls(Collections.singletonList(savedMessage)).get(0);
-
-        Conversation conversation = conversationRepository.findById(enrichedMessage.getConversationId())
+        Conversation conversation = conversationRepository.findById(savedMessage.getConversationId())
                 .orElseThrow(() -> new IllegalStateException("Conversation not found after message creation"));
 
         conversation.getParticipantIds().forEach(participantId -> {
             messagingTemplate.convertAndSendToUser(
                 participantId,
                 "/queue/messages",
-                enrichedMessage
+                savedMessage
             );
             log.info("Message {} sent to user {}", savedMessage.getId(), participantId);
         });
     }
 
     /**
-     * Handles message deletion requests and broadcasts the deletion event.
+     * Xử lý yêu cầu xóa tin nhắn và broadcast sự kiện xóa.
      * <p>
-     * Performs soft-delete of the message and broadcasts a deletion event
-     * to all conversation participants through a shared topic. Only the message
-     * sender can delete their own messages.
+     * Thực hiện soft-delete tin nhắn (đánh dấu isDeleted = true, xóa nội dung)
+     * và broadcast sự kiện xóa đến tất cả participant qua topic chung.
+     * Chỉ người gửi mới có quyền xóa tin nhắn của chính mình.
      * </p>
      *
-     * @param request the delete message request containing the message ID
-     * @param authentication the authentication object containing the JWT token
-     * @throws ResponseStatusException with HTTP 403 if user is not the message sender
-     * @throws ResponseStatusException with HTTP 404 if the message is not found
+     * <h3>Flow xử lý:</h3>
+     * <ol>
+     *   <li>Trích xuất userId từ JWT</li>
+     *   <li>Gọi MessageService để xóa tin nhắn (có kiểm tra quyền)</li>
+     *   <li>Tạo DeleteMessageEvent với messageId và conversationId</li>
+     *   <li>Broadcast event đến /topic/conversation/{conversationId}</li>
+     * </ol>
+     *
+     * @param request yêu cầu xóa tin nhắn chứa messageId
+     * @param authentication đối tượng xác thực chứa JWT token của người xóa
+     * @throws ResponseStatusException 403 nếu user không phải người gửi tin nhắn
+     * @throws ResponseStatusException 404 nếu không tìm thấy tin nhắn
      * @see DeleteMessageRequest
      * @see DeleteMessageEvent
      */

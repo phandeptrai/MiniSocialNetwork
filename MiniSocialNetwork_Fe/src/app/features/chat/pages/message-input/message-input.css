@@ -1,0 +1,278 @@
+/* ==================== */
+/* Message Input Component */
+/* Dark Theme - Flat Design */
+/* ==================== */
+
+:host {
+  display: block;
+  background: #111111;
+  border-top: 1px solid #1e1e1e;
+}
+
+.message-input-container {
+  padding: 14px 20px 18px;
+}
+
+/* ==================== */
+/* File Preview Area */
+/* ==================== */
+
+.file-preview-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 14px;
+  background: #1a1a1a;
+  border-radius: 12px;
+}
+
+.file-preview-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #262626;
+  border-radius: 10px;
+  max-width: 180px;
+}
+
+.file-thumbnail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.file-thumbnail svg {
+  width: 18px;
+  height: 18px;
+  color: #8b5cf6;
+  flex-shrink: 0;
+}
+
+.file-thumbnail .file-name {
+  font-size: 0.8rem;
+  color: #a3a3a3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-remove-file {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: #3f3f46;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.btn-remove-file:hover {
+  background: #dc2626;
+}
+
+.btn-remove-file svg {
+  width: 12px;
+  height: 12px;
+  color: #a3a3a3;
+}
+
+.btn-remove-file:hover svg {
+  color: white;
+}
+
+/* ==================== */
+/* Input Form */
+/* ==================== */
+
+.input-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  background: #1a1a1a;
+  border-radius: 20px;
+  padding: 6px 10px;
+  transition: all 0.15s ease;
+}
+
+.input-form:focus-within {
+  background: #1f1f1f;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+}
+
+/* ==================== */
+/* Attachment Button */
+/* ==================== */
+
+.btn-attachment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #737373;
+  flex-shrink: 0;
+}
+
+.btn-attachment:hover {
+  background: #262626;
+  color: #8b5cf6;
+}
+
+.btn-attachment svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ==================== */
+/* Text Input */
+/* ==================== */
+
+.input-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.message-textarea {
+  width: 100%;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  font-size: 0.9rem;
+  color: #e5e5e5;
+  resize: none;
+  outline: none;
+  max-height: 120px;
+  line-height: 1.5;
+  font-family: inherit;
+}
+
+.message-textarea::placeholder {
+  color: #525252;
+}
+
+.message-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==================== */
+/* Emoji Button */
+/* ==================== */
+
+.btn-emoji {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #737373;
+  flex-shrink: 0;
+}
+
+.btn-emoji:hover {
+  background: #262626;
+  color: #fbbf24;
+}
+
+.btn-emoji svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ==================== */
+/* Send Button */
+/* ==================== */
+
+.btn-send {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: #8b5cf6;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: white;
+  flex-shrink: 0;
+}
+
+.btn-send:hover:not(:disabled) {
+  background: #7c3aed;
+}
+
+.btn-send:disabled {
+  background: #3f3f46;
+  cursor: not-allowed;
+}
+
+.btn-send svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ==================== */
+/* Sending Spinner */
+/* ==================== */
+
+.sending-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== */
+/* Responsive Design */
+/* ==================== */
+
+@media (max-width: 640px) {
+  .message-input-container {
+    padding: 10px 14px 14px;
+  }
+
+  .input-form {
+    gap: 6px;
+    padding: 4px 8px;
+  }
+
+  .btn-attachment,
+  .btn-emoji {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btn-send {
+    width: 36px;
+    height: 36px;
+  }
+}

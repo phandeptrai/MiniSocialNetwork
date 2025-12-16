@@ -14,24 +14,46 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 
 /**
- * Interceptor for authenticating WebSocket connections using JWT tokens.
+ * Interceptor xác thực kết nối WebSocket bằng JWT token.
  * <p>
- * This interceptor checks the Authorization header during the STOMP CONNECT command,
- * decodes the JWT token, and sets the authenticated user in the WebSocket session.
- * If the token is invalid or missing, the user is not authenticated and the connection
- * may be rejected by subsequent security checks.
+ * Interceptor này xử lý việc xác thực người dùng khi họ kết nối WebSocket.
+ * Khác với HTTP request (được xử lý bởi SecurityFilterChain), WebSocket
+ * cần interceptor riêng để trích xuất và xác minh token từ STOMP header.
  * </p>
+ *
+ * <h2>Luồng xác thực:</h2>
+ * <ol>
+ *   <li>Client gửi lệnh STOMP CONNECT với header "Authorization: Bearer {token}"</li>
+ *   <li>Interceptor trích xuất token từ header</li>
+ *   <li>JwtDecoder xác minh chữ ký và thời hạn token</li>
+ *   <li>JwtAuthenticationConverter tạo Authentication object</li>
+ *   <li>Authentication được gắn vào WebSocket session</li>
+ * </ol>
+ *
+ * <h2>Lưu ý:</h2>
+ * <p>
+ * Xác thực chỉ xảy ra ở lệnh CONNECT. Các message sau đó sử dụng
+ * Authentication đã được lưu trong session. Nếu token không hợp lệ,
+ * BadCredentialsException được throw và kết nối bị từ chối.
+ * </p>
+ *
+ * @author MiniSocialNetwork Team
+ * @version 1.0
+ * @see com.mini.socialnetwork.config.WebSocketConfig
  */
 public class WebSocketAuthInterceptor implements ChannelInterceptor {
 
+    /** Decoder để giải mã và xác minh JWT token */
     private final JwtDecoder jwtDecoder;
+
+    /** Converter để tạo Authentication object từ JWT */
     private final JwtAuthenticationConverter jwtAuthenticationConverter;
 
     /**
-     * Constructs a new WebSocketAuthInterceptor.
+     * Khởi tạo WebSocketAuthInterceptor với các dependency cần thiết.
      *
-     * @param jwtDecoder the JwtDecoder bean for decoding JWT tokens
-     * @param converter the JwtAuthenticationConverter for creating Authentication objects from JWTs
+     * @param jwtDecoder bean JwtDecoder đã được cấu hình trong SecurityConfig
+     * @param converter bean JwtAuthenticationConverter để chuyển đổi JWT thành Authentication
      */
     public WebSocketAuthInterceptor(JwtDecoder jwtDecoder, JwtAuthenticationConverter converter) {
         this.jwtDecoder = jwtDecoder;
@@ -39,17 +61,23 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
     }
 
     /**
-     * Intercepts messages sent to the channel and authenticates WebSocket connections.
+     * Xử lý message trước khi gửi đến channel, thực hiện xác thực cho lệnh CONNECT.
      * <p>
-     * Extracts and validates the JWT token from the Authorization header during the STOMP CONNECT
-     * command. Upon successful validation, sets the authenticated user in the WebSocket session
-     * accessor, allowing downstream handlers to access the authenticated principal.
+     * Phương thức này được gọi cho mọi message đến từ client. Chỉ xử lý xác thực
+     * cho lệnh STOMP CONNECT, các lệnh khác được pass through.
      * </p>
      *
-     * @param message the message being sent
-     * @param channel the message channel
-     * @return the original message, possibly with the authenticated user set in the accessor
-     * @throws BadCredentialsException if the token is present but invalid or malformed
+     * <h3>Xử lý Authorization header:</h3>
+     * <ul>
+     *   <li>Header phải có format "Bearer {token}"</li>
+     *   <li>Nếu không có header hoặc format sai, không set user (anonymous)</li>
+     *   <li>Nếu token không hợp lệ, throw BadCredentialsException</li>
+     * </ul>
+     *
+     * @param message message STOMP từ client
+     * @param channel channel nhận message
+     * @return message gốc (có thể đã được gắn user trong accessor)
+     * @throws BadCredentialsException nếu token không hợp lệ hoặc đã hết hạn
      */
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {

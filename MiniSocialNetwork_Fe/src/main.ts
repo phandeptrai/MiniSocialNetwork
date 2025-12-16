@@ -2,7 +2,7 @@ import 'zone.js';
 
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/http';
 import { provideOAuthClient } from 'angular-oauth2-oidc';
 
 import { routes } from './app/app.routes';
@@ -15,6 +15,7 @@ bootstrapApplication(App, {
   providers: [
     provideRouter(routes),
     provideHttpClient(
+      withFetch(),
       withInterceptors([tokenInterceptor])
     ),
     provideOAuthClient(),
