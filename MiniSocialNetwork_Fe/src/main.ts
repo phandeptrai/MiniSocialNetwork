@@ -1,6 +1,29 @@
-import { bootstrapApplication } from '@angular/platform-browser';
-import { appConfig } from './app/app.config';
-import { App } from './app/app';
+import 'zone.js';
 
-bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+import { bootstrapApplication } from '@angular/platform-browser';
+import { provideRouter } from '@angular/router';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideOAuthClient } from 'angular-oauth2-oidc';
+
+import { routes } from './app/app.routes';
+import { App } from './app/app';
+import { tokenInterceptor } from './app/core/auth/token-interceptor';
+import { APP_INITIALIZER } from '@angular/core';
+import { AuthService } from './app/core/auth/auth';
+
+bootstrapApplication(App, {
+  providers: [
+    provideRouter(routes),
+    provideHttpClient(
+      withInterceptors([tokenInterceptor])
+    ),
+    provideOAuthClient(),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (auth: AuthService) => () => auth.initAuthFlow(),
+      deps: [AuthService],
+      multi: true
+    }
+  ]
+
+});
