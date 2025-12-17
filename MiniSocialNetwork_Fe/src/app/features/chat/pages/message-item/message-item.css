@@ -1,0 +1,353 @@
+/* ==================== */
+/* Message Item Component */
+/* Dark Theme - Flat Design */
+/* ==================== */
+
+:host {
+  display: block;
+}
+
+.message-wrapper {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 6px;
+  padding: 0 8px;
+  animation: messageSlide 0.2s ease forwards;
+}
+
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== */
+/* Message Layout */
+/* ==================== */
+
+.message-wrapper.received {
+  justify-content: flex-start;
+}
+
+.message-wrapper.sent {
+  justify-content: flex-end;
+}
+
+.message-content {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 70%;
+}
+
+.message-wrapper.sent .message-content {
+  flex-direction: row-reverse;
+}
+
+/* ==================== */
+/* Avatar */
+/* ==================== */
+
+.message-avatar {
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.message-avatar img {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* ==================== */
+/* Message Bubble */
+/* ==================== */
+
+.message-bubble {
+  padding: 10px 14px;
+  border-radius: 16px;
+  position: relative;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Received message styles */
+.message-wrapper.received .message-bubble {
+  background: #1a1a1a;
+  color: #e5e5e5;
+  border-bottom-left-radius: 4px;
+}
+
+/* Sent message styles */
+.message-wrapper.sent .message-bubble {
+  background: #8b5cf6;
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+/* ==================== */
+/* Deleted Message */
+/* ==================== */
+
+.message-bubble.deleted {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
+  color: #525252;
+  font-style: italic;
+  border: 1px dashed #333333;
+  padding: 10px 14px;
+}
+
+.message-wrapper.sent .message-bubble.deleted {
+  background: #1a1a1a;
+  color: #525252;
+  border: 1px dashed #333333;
+}
+
+.deleted-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+}
+
+.deleted-text {
+  font-size: 0.85rem;
+}
+
+/* ==================== */
+/* Message Text */
+/* ==================== */
+
+.message-text {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* ==================== */
+/* Message Meta */
+/* ==================== */
+
+.message-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.message-time {
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
+.message-wrapper.received .message-time {
+  color: #737373;
+}
+
+.message-wrapper.sent .message-time {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ==================== */
+/* Message Status Icons */
+/* ==================== */
+
+.message-status svg {
+  width: 12px;
+  height: 12px;
+}
+
+.status-sending {
+  color: rgba(255, 255, 255, 0.5);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.status-sent {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.status-error {
+  color: #ef4444;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ==================== */
+/* Attachments */
+/* ==================== */
+
+.attachments {
+  margin-bottom: 6px;
+}
+
+.attachment-image-wrapper {
+  margin-bottom: 6px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.attachment-image {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.attachment-image:hover {
+  transform: scale(1.01);
+}
+
+/* ==================== */
+/* File Attachment */
+/* ==================== */
+
+.attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+  margin-bottom: 6px;
+  transition: all 0.15s ease;
+}
+
+.message-wrapper.received .attachment-file {
+  background: #262626;
+}
+
+.attachment-file:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.message-wrapper.received .attachment-file:hover {
+  background: #303030;
+}
+
+.file-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.message-wrapper.received .file-icon {
+  background: #8b5cf6;
+  color: white;
+}
+
+.file-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-info .file-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-info .file-size {
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+.download-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* ==================== */
+/* Message Actions */
+/* ==================== */
+
+.message-actions {
+  display: flex;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.message-wrapper:hover .message-actions {
+  opacity: 1;
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: #262626;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: #737373;
+}
+
+.btn-action:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.btn-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ==================== */
+/* Responsive Design */
+/* ==================== */
+
+@media (max-width: 640px) {
+  .message-content {
+    max-width: 85%;
+  }
+
+  .message-bubble {
+    padding: 8px 12px;
+  }
+
+  .message-avatar img {
+    width: 28px;
+    height: 28px;
+  }
+}

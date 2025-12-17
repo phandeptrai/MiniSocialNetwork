@@ -1,0 +1,88 @@
+<div class="message-wrapper" [class.sent]="message.isSender" [class.received]="!message.isSender">
+  <!-- Avatar cho tin nhắn nhận -->
+  <div class="message-avatar" *ngIf="!message.isSender">
+    <img src="https://i.pravatar.cc/36?u={{message.senderId}}" alt="User avatar" />
+  </div>
+
+  <div class="message-content">
+    <!-- Deleted message -->
+    <div class="message-bubble deleted" *ngIf="message.isDeleted">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="deleted-icon">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+      </svg>
+      <span class="deleted-text">This message was deleted</span>
+    </div>
+
+    <!-- Normal message -->
+    <div class="message-bubble" *ngIf="!message.isDeleted">
+      <!-- Attachments -->
+      <div class="attachments" *ngIf="message.attachments && message.attachments.length > 0">
+        <ng-container *ngFor="let attachment of message.attachments">
+          <!-- Image attachment -->
+          <div class="attachment-image-wrapper" *ngIf="isImage(attachment.fileType)">
+            <img 
+              [src]="attachment.fileUrl" 
+              [alt]="attachment.fileName" 
+              class="attachment-image"
+              loading="lazy" />
+          </div>
+          
+          <!-- File attachment -->
+          <a 
+            *ngIf="!isImage(attachment.fileType)" 
+            [href]="attachment.fileUrl" 
+            target="_blank" 
+            class="attachment-file">
+            <div class="file-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+              </svg>
+            </div>
+            <div class="file-info">
+              <span class="file-name">{{ attachment.fileName }}</span>
+              <span class="file-size">{{ attachment.fileSize | number:'1.0-0' }} bytes</span>
+            </div>
+            <svg class="download-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </a>
+        </ng-container>
+      </div>
+
+      <!-- Text content -->
+      <p class="message-text" *ngIf="message.content">{{ message.content }}</p>
+
+      <!-- Message meta -->
+      <div class="message-meta">
+        <span class="message-time">{{ message.createdAt | date:'shortTime' }}</span>
+        <span class="message-status" *ngIf="message.isSender">
+          <svg *ngIf="message.status === 'sending'" class="status-sending" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+          </svg>
+          <svg *ngIf="message.status === 'sent' || !message.status" class="status-sent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <svg *ngIf="message.status === 'error'" class="status-error" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+          </svg>
+        </span>
+      </div>
+    </div>
+
+    <!-- Message actions -->
+    <div class="message-actions" *ngIf="message.isSender && !message.isDeleted">
+      <button class="btn-action" (click)="onDelete()" title="Delete message">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

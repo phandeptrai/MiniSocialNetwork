@@ -1,0 +1,74 @@
+<div class="message-input-container">
+  <!-- File preview area -->
+  <div class="file-preview-area" *ngIf="selectedFiles.length > 0">
+    <div class="file-preview-item" *ngFor="let file of selectedFiles; let i = index">
+      <div class="file-thumbnail">
+        <svg *ngIf="!file.type.startsWith('image/')" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+        <span class="file-name">{{ file.name }}</span>
+      </div>
+      <button class="btn-remove-file" (click)="removeFile(i)" title="Remove file">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Input area -->
+  <form class="input-form" (submit)="sendMessage($event)">
+    <!-- Attachment button -->
+    <label class="btn-attachment" title="Add attachment">
+      <input 
+        type="file" 
+        multiple 
+        (change)="onFileSelected($event)" 
+        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+        hidden />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+      </svg>
+    </label>
+
+    <!-- Text input -->
+    <div class="input-wrapper">
+      <textarea 
+        #messageTextarea
+        [(ngModel)]="messageContent"
+        name="messageContent"
+        placeholder="Type a message..."
+        class="message-textarea"
+        rows="1"
+        (input)="autoResize($event)"
+        (keydown.enter)="onEnterKey($event)"
+        [disabled]="isUploading">
+      </textarea>
+    </div>
+
+    <!-- Emoji button -->
+    <button type="button" class="btn-emoji" title="Add emoji">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+        <line x1="9" y1="9" x2="9.01" y2="9"></line>
+        <line x1="15" y1="9" x2="15.01" y2="9"></line>
+      </svg>
+    </button>
+
+    <!-- Send button -->
+    <button 
+      type="submit" 
+      class="btn-send" 
+      [disabled]="isUploading || (!messageContent.trim() && selectedFiles.length === 0)"
+      title="Send message">
+      <svg *ngIf="!isUploading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+      <div class="sending-spinner" *ngIf="isUploading"></div>
+    </button>
+  </form>
+</div>
