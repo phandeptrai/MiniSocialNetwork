@@ -1,0 +1,42 @@
+<main class="main">
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1>🌐 {{ title() }}</h1>
+      <p class="subtitle">Demo tính năng Follow/Unfollow</p>
+    </header>
+
+    <!-- Current User Info -->
+    <div class="current-user">
+      <span class="label">Bạn đang đăng nhập với ID:</span>
+      <span class="user-id">User #{{ currentUserId }}</span>
+    </div>
+
+    <!-- User Cards -->
+    <section class="user-section">
+      <h2>👥 Gợi ý người dùng</h2>
+      <div class="user-cards">
+        @for (user of users; track user.id) {
+        <div class="user-card">
+          <div class="user-avatar">{{ user.avatar }}</div>
+          <div class="user-info">
+            <span class="user-name">{{ user.name }}</span>
+            <span class="user-username">{{ user.username }}</span>
+          </div>
+          <app-follow-button [userId]="user.id" [currentUserId]="currentUserId" />
+        </div>
+        }
+      </div>
+    </section>
+
+    <!-- API Info -->
+    <section class="api-info">
+      <h3>🔗 API Endpoints</h3>
+      <ul>
+        <li><code>POST /api/follows/userId</code> - Follow</li>
+        <li><code>DELETE /api/follows/userId</code> - Unfollow</li>
+        <li><code>GET /api/follows/status/userId</code> - Check status</li>
+      </ul>
+    </section>
+  </div>
+</main>

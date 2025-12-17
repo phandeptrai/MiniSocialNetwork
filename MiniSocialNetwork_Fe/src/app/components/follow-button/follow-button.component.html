@@ -1,0 +1,15 @@
+<button 
+  class="follow-btn" 
+  [class.following]="isFollowing()"
+  [class.loading]="isLoading()"
+  [disabled]="isLoading()"
+  (click)="toggleFollow()">
+  
+  @if (isLoading()) {
+    <span class="spinner"></span>
+  } @else if (isFollowing()) {
+    <span class="btn-text">Đang theo dõi</span>
+  } @else {
+    <span class="btn-text">Theo dõi</span>
+  }
+</button>

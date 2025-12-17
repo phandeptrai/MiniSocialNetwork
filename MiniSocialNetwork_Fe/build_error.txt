@@ -1,0 +1,66 @@
+﻿[33mΓ¥»[39m Building...
+[32mΓ£ö[39m Building...
+[35mPrerendered 0 static routes.[39m
+Application bundle generation failed. [8.459 seconds] - 2025-12-15T18:17:35.754Z
+
+node.exe : [1m[33m[33mΓû▓ 
+[43;33m[[43;30mWARNING[43;33m][0m 
+[1mNG8113: All imports are unused[0m 
+[1m[35m[plugin angular-compiler][0m
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( 
+   [1m[33m[33mΓ...r-compiler][0m:String) [  
+  ], RemoteException
+    + FullyQualifiedErrorId : NativeCommandErr 
+   or
+ 
+
+    src/app/app.ts:7:2:
+[37m      7 Γöé   [32mimports[37m: 
+[RouterOutlet, FollowButtonComponent],
+        Γò╡   [32m~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX 
+[41;31m[[41;97mERROR[41;31m][0m 
+[1mNG5002: Invalid ICU message. Missing 
+'}'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/app.html:44:17:
+[37m      44 Γöé <router-outlet />[32m[37m
+         Γò╡                  [32m^[0m
+
+  Error occurs in the template of component 
+App.
+
+    src/app/app.ts:8:15:
+[37m      8 Γöé   templateUrl: 
+[32m'./app.html'[37m,
+        Γò╡                
+[32m~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m 
+[1mNG5002: Unexpected character "EOF" (Do you 
+have an unescaped "{" in your template? Use 
+"{{ '{' }}") to escape it.)[0m 
+[1m[35m[plugin angular-compiler][0m
+
+    src/app/app.html:44:17:
+[37m      44 Γöé <router-outlet />[32m[37m
+         Γò╡                  [32m^[0m
+
+  Error occurs in the template of component 
+App.
+
+    src/app/app.ts:8:15:
+[37m      8 Γöé   templateUrl: 
+[32m'./app.html'[37m,
+        Γò╡                
+[32m~~~~~~~~~~~~[0m
+
+[39m[22m
