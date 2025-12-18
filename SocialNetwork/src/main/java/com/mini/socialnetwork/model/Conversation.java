@@ -1,10 +1,11 @@
 package com.mini.socialnetwork.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
-import org.bson.types.ObjectId;
+import org.hibernate.annotations.CreationTimestamp;
 
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,11 +15,22 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "conversations")
 public class Conversation {
-    private ObjectId id;
-    private List<ObjectId> participantIds;   // exactly 2 users
-    private String lastMessage;
-    private Date lastMessageAt;
-    private Date createdAt;
-}
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @ElementCollection
+    @CollectionTable(name = "conversation_participants", joinColumns = @JoinColumn(name = "conversation_id"))
+    @Column(name = "user_id")
+    private List<Long> participantIds;
+
+    private String lastMessage;
+
+    private LocalDateTime lastMessageAt;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+}

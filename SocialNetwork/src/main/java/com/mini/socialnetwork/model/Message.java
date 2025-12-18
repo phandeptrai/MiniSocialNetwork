@@ -1,9 +1,11 @@
 package com.mini.socialnetwork.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
-import org.bson.types.ObjectId;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,14 +15,31 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "messages")
 public class Message {
-    private ObjectId id;
-    private ObjectId conversationId;
-    private ObjectId senderId;
-    private ObjectId receiverId;
-    private String content;
-    private Date createdAt;
-    private Date updatedAt;
-    private boolean isDeleted;
-}
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column(nullable = false)
+    private Long conversationId;
+
+    @Column(nullable = false)
+    private Long senderId;
+
+    @Column(nullable = false)
+    private Long receiverId;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String content;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
+    @Builder.Default
+    private boolean isDeleted = false;
+}

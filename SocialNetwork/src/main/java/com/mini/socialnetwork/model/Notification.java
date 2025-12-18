@@ -1,9 +1,10 @@
 package com.mini.socialnetwork.model;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
-import org.bson.types.ObjectId;
+import org.hibernate.annotations.CreationTimestamp;
 
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,14 +14,30 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "notifications")
 public class Notification {
-    private ObjectId id;
-    private ObjectId receiverId;
-    private ObjectId senderId;
-    private Type type;            // LIKE, COMMENT, FOLLOW
-    private ObjectId postId;      // nullable
-    private boolean isRead;
-    private Date createdAt;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private Long receiverId;
+
+    @Column(nullable = false)
+    private Long senderId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Type type;
+
+    private Long postId;
+
+    @Builder.Default
+    private boolean isRead = false;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
     public enum Type {
         LIKE,
@@ -28,4 +45,3 @@ public class Notification {
         FOLLOW
     }
 }
-

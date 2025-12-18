@@ -1,0 +1,21 @@
+<button
+  (click)="toggleFollow()"
+  [disabled]="isLoading() || isFollowing() === null"
+  [class.following]="isFollowing() === true"
+  [class.not-following]="isFollowing() === false"
+  [class.loading]="isLoading()"
+  class="follow-button"
+>
+  @if (isLoading()) {
+    <span class="spinner"></span>
+    <span>Đang xử lý...</span>
+  } @else if (isFollowing() === null) {
+    <span>Đang tải...</span>
+  } @else if (isFollowing()) {
+    <span class="icon">✓</span>
+    <span>Đang theo dõi</span>
+  } @else {
+    <span class="icon">+</span>
+    <span>Theo dõi</span>
+  }
+</button>

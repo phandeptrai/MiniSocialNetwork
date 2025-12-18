@@ -1,0 +1,27 @@
+<div class="follow-page">
+    <div class="container">
+        <div class="profile-card">
+            <div class="avatar">
+                <span>👤</span>
+            </div>
+            <div class="profile-info">
+                <h2 class="username">User #{{ targetUserId }}</h2>
+                <p class="bio">Đây là trang profile mẫu để demo chức năng Follow/Unfollow</p>
+            </div>
+            <div class="follow-action">
+                <app-follow-button [targetUserId]="targetUserId" [currentUserId]="currentUserId">
+                </app-follow-button>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <h3>📌 Thông tin Demo</h3>
+            <ul>
+                <li><strong>Current User ID:</strong> {{ currentUserId }}</li>
+                <li><strong>Target User ID:</strong> {{ targetUserId }}</li>
+                <li><strong>API Endpoint:</strong> /api/follows/status/{{ targetUserId }}?followerId={{ currentUserId }}
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
