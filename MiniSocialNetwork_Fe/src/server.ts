@@ -5,12 +5,49 @@ import {
   writeResponseToNodeResponse,
 } from '@angular/ssr/node';
 import express from 'express';
+import { createProxyMiddleware } from 'http-proxy-middleware';
 import { join } from 'node:path';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 
 const app = express();
 const angularApp = new AngularNodeAppEngine();
+
+// Proxy API + Keycloak endpoints when running the SSR server.
+// This mirrors the dev `proxy.conf.json` behavior, so the frontend can call
+// relative URLs like `/api/...` and `/keycloak/...` in Docker.
+const apiTarget = (process.env['API_URL'] || 'http://backend:8080').replace(/\/$/, '');
+const keycloakTarget = (process.env['KEYCLOAK_URL'] || 'http://keycloak:8080').replace(/\/$/, '');
+
+app.use(
+  '/api',
+  createProxyMiddleware({
+    target: apiTarget,
+    changeOrigin: true,
+    xfwd: true,
+    pathRewrite: (path) => `/api${path}`,
+  }),
+);
+
+app.use(
+  '/ws',
+  createProxyMiddleware({
+    target: apiTarget,
+    changeOrigin: true,
+    ws: true,
+    xfwd: true,
+    pathRewrite: (path) => `/ws${path}`,
+  }),
+);
+
+app.use(
+  '/keycloak',
+  createProxyMiddleware({
+    target: keycloakTarget,
+    changeOrigin: true,
+    xfwd: true,
+  }),
+);
 
 /**
  * Example Express Rest API endpoints can be defined here.
@@ -66,3 +103,4 @@ if (isMainModule(import.meta.url) || process.env['pm_id']) {
  * Request handler used by the Angular CLI (for dev-server and during build) or Firebase Cloud Functions.
  */
 export const reqHandler = createNodeRequestHandler(app);
+
