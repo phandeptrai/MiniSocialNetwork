@@ -1,26 +1,44 @@
 package com.mini.socialnetwork.model;
 
-import java.util.Date;
+import java.time.Instant;
+import java.util.UUID;
 
-import org.bson.types.ObjectId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "notifications")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Notification {
-    private ObjectId id;
-    private ObjectId receiverId;
-    private ObjectId senderId;
-    private Type type;            // LIKE, COMMENT, FOLLOW
-    private ObjectId postId;      // nullable
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
+
+    private UUID receiverId;   // người nhận
+
+    private UUID senderId;     // người gây ra hành động
+
+    private Type type;             // LIKE, COMMENT, FOLLOW
+
+    private UUID postId;       // null nếu FOLLOW
+
+    private String message;        // "A đã thích bài viết của bạn"
+
     private boolean isRead;
-    private Date createdAt;
+
+    private Instant createdAt;
 
     public enum Type {
         LIKE,

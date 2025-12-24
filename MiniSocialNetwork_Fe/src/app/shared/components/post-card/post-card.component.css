@@ -1,0 +1,141 @@
+.post-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 12px 16px 10px;
+  margin-bottom: 16px;
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.avatar {
+  margin-right: 8px;
+}
+
+.avatar img,
+.avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #d1d5db;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.author {
+  font-weight: 600;
+  font-size: 14px;
+  color: #111827;
+}
+
+.time {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.post-text {
+  font-size: 14px;
+  color: #111827;
+  margin: 4px 0 8px;
+}
+
+.post-images img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.layout-1 {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.layout-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.layout-3 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.layout-3 .main {
+  height: 260px;
+}
+
+.layout-3 .side {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+}
+
+.layout-4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 2px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.icon-button {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 14px;
+}
+
+.icon-button.active {
+  color: #ef4444;
+}
+
+.count {
+  font-size: 12px;
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.comment-input {
+  margin-top: 8px;
+}
+
+.comment-input input {
+  width: 100%;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  padding: 6px 12px;
+  font-size: 13px;
+  outline: none;
+  background: #f9fafb;
+}
+
+.comment-input input:focus {
+  border-color: #60a5fa;
+  background: #ffffff;
+}
+
+

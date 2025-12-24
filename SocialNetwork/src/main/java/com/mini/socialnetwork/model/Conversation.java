@@ -1,9 +1,15 @@
 package com.mini.socialnetwork.model;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
-import org.bson.types.ObjectId;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,11 +20,17 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "conversations")
 public class Conversation {
-    private ObjectId id;
-    private List<ObjectId> participantIds;   // exactly 2 users
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
+
+    @ElementCollection
+    private List<UUID> participantIds;   // exactly 2 users
     private String lastMessage;
-    private Date lastMessageAt;
-    private Date createdAt;
+    private Instant lastMessageAt;
+    private Instant createdAt;
 }
 

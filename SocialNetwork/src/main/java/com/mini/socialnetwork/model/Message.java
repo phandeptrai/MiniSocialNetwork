@@ -1,8 +1,13 @@
 package com.mini.socialnetwork.model;
 
-import java.util.Date;
+import java.time.Instant;
+import java.util.UUID;
 
-import org.bson.types.ObjectId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,14 +18,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "messages")
 public class Message {
-    private ObjectId id;
-    private ObjectId conversationId;
-    private ObjectId senderId;
-    private ObjectId receiverId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
+    private UUID conversationId;
+    private UUID senderId;
+    private UUID receiverId;
     private String content;
-    private Date createdAt;
-    private Date updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private boolean isDeleted;
 }
 
