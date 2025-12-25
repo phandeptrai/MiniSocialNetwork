@@ -25,28 +25,27 @@ public class KeycloakAdminService {
     @Value("${keycloak.realm:social-network}")
     private String realm;
 
-    @Value("${keycloak.admin.username:admin}")
-    private String adminUsername;
+    @Value("${keycloak.admin.client-id:social-network-backend}")
+    private String clientId;
 
-    @Value("${keycloak.admin.password:admin}")
-    private String adminPassword;
+    @Value("${keycloak.admin.client-secret}")
+    private String clientSecret;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
-     * Lấy admin token từ Keycloak master realm
+     * Lấy admin token từ Keycloak sử dụng client credentials flow
      */
     private String getAdminToken() {
-        String tokenUrl = keycloakUrl + "/realms/master/protocol/openid-connect/token";
+        String tokenUrl = keycloakUrl + "/realms/" + realm + "/protocol/openid-connect/token";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "password");
-        body.add("client_id", "admin-cli");
-        body.add("username", adminUsername);
-        body.add("password", adminPassword);
+        body.add("grant_type", "client_credentials");
+        body.add("client_id", clientId);
+        body.add("client_secret", clientSecret);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 

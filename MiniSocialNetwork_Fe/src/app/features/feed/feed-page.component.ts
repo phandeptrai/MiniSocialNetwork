@@ -13,7 +13,6 @@ import { PostResponse } from '../../core/services/post.service';
       <!-- Post Composer - Tạo bài viết mới -->
       <app-post-composer
         [currentUserName]="currentUserName"
-        [authorId]="currentUserId"
         (postCreated)="onPostCreated($event)"
       ></app-post-composer>
 

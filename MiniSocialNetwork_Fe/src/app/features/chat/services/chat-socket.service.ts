@@ -3,7 +3,7 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { ChatStateService } from './chat-state.service';
 import { Message } from '../models/message';
-import { AuthService } from '../../../core/auth/auth';
+import { AuthService } from '../../../core/services/auth';
 import { DeleteMessageEvent } from '../models/events';
 
 @Injectable({
@@ -120,7 +120,7 @@ export class ChatSocketService {
                 (message) => {
                     const event: DeleteMessageEvent = JSON.parse(message.body);
                     console.log('Received delete event:', event);
-                    
+
                     // Cập nhật message thành đã xóa trong state
                     if (event.messageId && event.conversationId) {
                         this.chatState.markMessageAsDeleted(event.conversationId, event.messageId);

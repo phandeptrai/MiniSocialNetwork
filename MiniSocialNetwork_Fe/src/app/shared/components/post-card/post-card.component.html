@@ -2,11 +2,7 @@
   <!-- Header -->
   <header class="post-header">
     <div class="avatar">
-      <img
-        *ngIf="post.authorAvatarUrl; else defaultAvatar"
-        [src]="post.authorAvatarUrl!"
-        alt="avatar"
-      />
+      <img *ngIf="post.authorAvatarUrl; else defaultAvatar" [src]="post.authorAvatarUrl!" alt="avatar" />
       <ng-template #defaultAvatar>
         <div class="avatar-placeholder"></div>
       </ng-template>
@@ -63,31 +59,23 @@
 
   <!-- Actions: like & comment counts -->
   <div class="post-actions">
-    <button
-      type="button"
-      class="icon-button"
-      [class.active]="internalIsLiked()"
-      (click)="onToggleLike()"
-    >
+    <button type="button" class="icon-button" [class.active]="internalIsLiked()"
+      (click)="$event.preventDefault(); $event.stopPropagation(); onToggleLike()">
       ❤️
     </button>
     <span class="count">{{ internalLikeCount() }}</span>
 
-    <button type="button" class="icon-button">
+    <button type="button" class="icon-button" (click)="onOpenComments()">
       💬
     </button>
-    <span class="count">{{ post.commentCount }}</span>
+    <span class="count">{{ internalCommentCount() }}</span>
   </div>
 
-  <!-- Comment input -->
-  <div class="comment-input">
-    <input
-      type="text"
-      [formControl]="commentCtrl"
-      placeholder="Add a comment..."
-      (keyup.enter)="onSubmitComment()"
-    />
+  <!-- Comment bar (click to open popup) -->
+  <div class="comment-bar" (click)="onOpenComments()">
+    <div class="comment-bar-avatar"></div>
+    <div class="comment-bar-input">
+      <span class="comment-placeholder">Write a comment...</span>
+    </div>
   </div>
 </article>
-
-

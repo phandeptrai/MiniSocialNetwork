@@ -1,32 +1,35 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, computed, signal, inject } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { Component, EventEmitter, Input, Output, computed, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { PostViewModel } from '../../models/post.model';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule],
   templateUrl: './post-card.component.html',
   styleUrl: './post-card.component.css',
 })
-export class PostCardComponent {
+export class PostCardComponent implements OnChanges {
   @Input() post!: PostViewModel;
   @Input() isLiked = false;
 
   @Output() like = new EventEmitter<void>();
-  @Output() comment = new EventEmitter<string>();
+  @Output() openComments = new EventEmitter<void>();
 
-  private readonly fb = inject(FormBuilder);
-  readonly commentCtrl = this.fb.control('');
   readonly internalLikeCount = signal(0);
   readonly internalIsLiked = signal(false);
+  readonly internalCommentCount = signal(0);
 
   readonly imageCount = computed(() => this.post?.imageUrls?.length ?? 0);
 
-  ngOnChanges(): void {
-    this.internalLikeCount.set(this.post?.likeCount ?? 0);
-    this.internalIsLiked.set(this.isLiked);
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['post'] && this.post) {
+      this.internalLikeCount.set(this.post.likeCount ?? 0);
+      this.internalCommentCount.set(this.post.commentCount ?? 0);
+    }
+    if (changes['isLiked']) {
+      this.internalIsLiked.set(this.isLiked);
+    }
   }
 
   onToggleLike(): void {
@@ -35,12 +38,7 @@ export class PostCardComponent {
     this.like.emit();
   }
 
-  onSubmitComment(): void {
-    const content = (this.commentCtrl.value || '').trim();
-    if (!content) return;
-    this.comment.emit(content);
-    this.commentCtrl.reset();
+  onOpenComments(): void {
+    this.openComments.emit();
   }
 }
-
-

@@ -2,29 +2,35 @@ version: "3.9"
 
 services:
   mysql:
-    image: mysql:8.0
+    image: mysql:latest
     container_name: sc_mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=rootpassword
-      - MYSQL_DATABASE=socialnetwork_db
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     ports:
-      - "3309:3306"
+      - "${MYSQL_PORT:-3309}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
   minio:
     image: minio/minio:latest
     container_name: sc_minio
     environment:
-      - MINIO_ROOT_USER=minio-access-key
-      - MINIO_ROOT_PASSWORD=minio-secret-key
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     command: server /data --console-address ":9001"
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
     volumes:
       - minio_data:/data
     restart: unless-stopped
@@ -33,49 +39,63 @@ services:
     image: quay.io/keycloak/keycloak:21.1
     container_name: sc_keycloak
     environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
+      - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
+      - KC_DB=dev-file
     command: start-dev
     ports:
-      - "8180:8080"
+      - "${KEYCLOAK_PORT:-8180}:8080"
+    volumes:
+      - keycloak_data:/opt/keycloak/data
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   backend:
     build:
       context: ./SocialNetwork
     container_name: sc_backend
     ports:
-      - "8080:8080"
+      - "${BACKEND_PORT:-8080}:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/socialnetwork_db?useSSL=false&allowPublicKeyRetrieval=true
-      - SPRING_DATASOURCE_USERNAME=user
-      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=${MYSQL_USER}
+      - SPRING_DATASOURCE_PASSWORD=${MYSQL_PASSWORD}
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
 
       - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_EXTERNAL_URL=http://localhost:9000
-      - MINIO_ACCESS_KEY=minio-access-key
-      - MINIO_SECRET_KEY=minio-secret-key
-      - MINIO_BUCKET_NAME=socialnetwork-chat
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/social-network/protocol/openid-connect/certs
+      - MINIO_EXTERNAL_URL=http://localhost:${MINIO_PORT:-9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
+      - MINIO_BUCKET_NAME=${MINIO_BUCKET_NAME}
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI=http://keycloak:8080/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs
 
       # Keycloak Admin API (used by /api/auth/register)
       - KEYCLOAK_AUTH_SERVER_URL=http://keycloak:8080
+      - KEYCLOAK_ADMIN_CLIENT_ID=${KEYCLOAK_ADMIN_CLIENT_ID}
+      - KEYCLOAK_ADMIN_CLIENT_SECRET=${KEYCLOAK_ADMIN_CLIENT_SECRET}
 
       # Cloudinary (for image upload)
       - CLOUDINARY_URL=${CLOUDINARY_URL}
     restart: unless-stopped
     depends_on:
-      - mysql
-      - minio
-      - keycloak
+      mysql:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      keycloak:
+        condition: service_started
 
   frontend:
     build:
       context: ./MiniSocialNetwork_Fe
     container_name: sc_frontend
     ports:
-      - "4200:4200"
+      - "${FRONTEND_PORT:-4200}:4200"
     environment:
       - PORT=4200
       - API_URL=http://backend:8080
@@ -87,5 +107,4 @@ services:
 volumes:
   mysql_data:
   minio_data:
-
-
+  keycloak_data:

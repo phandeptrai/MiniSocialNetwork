@@ -347,9 +347,9 @@ export class LoginPage {
   errorMessage = signal('');
 
   ngOnInit(): void {
-    // Nếu đã đăng nhập rồi thì redirect về /chat
+    // Nếu đã đăng nhập rồi thì redirect về /feed
     if (this.keycloakApi.isAuthenticated()) {
-      this.router.navigate(['/chat']);
+      this.router.navigate(['/feed']);
     }
   }
 
@@ -365,7 +365,7 @@ export class LoginPage {
     this.keycloakApi.login(this.username, this.password).subscribe({
       next: () => {
         this.isLoading.set(false);
-        this.router.navigate(['/chat']);
+        this.router.navigate(['/feed']);
       },
       error: (error: any) => {
         this.isLoading.set(false);

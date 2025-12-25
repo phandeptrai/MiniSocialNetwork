@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, computed, signal, effect } from '@angular/core';
+import { Component, EventEmitter, Input, Output, computed, signal, inject, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl } from '@angular/forms';
 import { PostService, PostResponse } from '../../../core/services/post.service';
+import { KeycloakApiService } from '../../auth/services/keycloak-api.service';
 
 @Component({
   selector: 'app-post-composer',
@@ -10,12 +11,13 @@ import { PostService, PostResponse } from '../../../core/services/post.service';
   templateUrl: './post-composer.component.html',
   styleUrl: './post-composer.component.css',
 })
-export class PostComposerComponent {
-  @Input() currentUserName = 'John Doe';
+export class PostComposerComponent implements OnInit {
+  @Input() currentUserName = 'User';
   @Input() currentUserAvatarUrl: string | null = null;
-  @Input() authorId!: string;
 
   @Output() postCreated = new EventEmitter<PostResponse>();
+
+  private readonly keycloakApi = inject(KeycloakApiService);
 
   form: FormGroup;
   contentCtrl: FormControl<string | null>;
@@ -25,7 +27,7 @@ export class PostComposerComponent {
 
   readonly errorMessage = signal<string | null>(null);
   readonly isSubmitting = signal(false);
-  
+
   // Signal để track content changes
   private readonly contentSignal = signal<string>('');
   private readonly imagesSignal = signal<number>(0);
@@ -38,17 +40,15 @@ export class PostComposerComponent {
     const content = this.contentSignal().trim();
     const imageCount = this.imagesSignal();
     const hasContent = content.length > 0 || imageCount > 0;
-    const hasAuthorId = !!this.authorId;
-    
+
     console.log('🔍 canSubmit:', {
       notSubmitting,
       hasContent,
-      hasAuthorId,
       contentLength: content.length,
       imageCount
     });
-    
-    return notSubmitting && hasContent && hasAuthorId;
+
+    return notSubmitting && hasContent;
   });
 
   constructor(
@@ -66,6 +66,17 @@ export class PostComposerComponent {
     });
   }
 
+  ngOnInit(): void {
+    // Lấy tên user từ JWT token
+    const token = this.keycloakApi.getAccessToken();
+    if (token) {
+      const claims = this.keycloakApi.parseToken(token);
+      if (claims) {
+        this.currentUserName = claims.name || claims.preferred_username || 'User';
+      }
+    }
+  }
+
   hasContentOrImages(): boolean {
     const content = (this.contentCtrl.value || '').trim();
     return content.length > 0 || this.selectedImages.length > 0;
@@ -76,7 +87,7 @@ export class PostComposerComponent {
     if (!input.files) return;
 
     const files = Array.from(input.files);
-    
+
     // Check if adding these files would exceed the limit
     if (this.selectedImages.length + files.length > this.MAX_IMAGES) {
       this.errorMessage.set(`Bạn chỉ có thể tải lên tối đa ${this.MAX_IMAGES} ảnh.`);
@@ -131,9 +142,9 @@ export class PostComposerComponent {
 
     const content = this.contentCtrl.value?.trim() || null;
 
-    // Component gọi Service để tạo post mới
+    // Component gọi Service để tạo post mới (backend lấy userId từ JWT)
     this.postService
-      .createPost(this.authorId, content, this.selectedImages)
+      .createPost(content, this.selectedImages)
       .subscribe({
         next: (post) => {
           // Xử lý khi tạo post thành công
@@ -153,3 +164,4 @@ export class PostComposerComponent {
       });
   }
 }
+

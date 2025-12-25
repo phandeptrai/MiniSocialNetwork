@@ -7,7 +7,7 @@ import { provideHttpClient, withInterceptors, withFetch } from '@angular/common/
 
 import { routes } from './app/app.routes';
 import { App } from './app/app';
-import { tokenInterceptor } from './app/core/auth/token-interceptor';
+import { tokenInterceptor } from './app/core/interceptors/token-interceptor';
 
 bootstrapApplication(App, {
   providers: [

@@ -1,0 +1,114 @@
+<div class="popup-overlay" (click)="onOverlayClick($event)">
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <h2 class="popup-title">Comments</h2>
+      <button type="button" class="close-btn" (click)="onClose()" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Comments List -->
+    <div class="comments-container" #commentsContainer (scroll)="onScroll($event)">
+      <!-- Loading state -->
+      <div *ngIf="isLoading()" class="loading-state">
+        <div class="spinner"></div>
+        <span>Đang tải bình luận...</span>
+      </div>
+
+      <!-- Error state -->
+      <div *ngIf="errorMessage() as error" class="error-state">
+        <span>{{ error }}</span>
+        <button type="button" class="retry-btn" (click)="loadComments()">Thử lại</button>
+      </div>
+
+      <!-- Comments list -->
+      <div *ngIf="!isLoading() && !errorMessage()" class="comments-list">
+        <!-- Empty state -->
+        <div *ngIf="comments().length === 0" class="empty-state">
+          <div class="empty-icon">💬</div>
+          <p>Chưa có bình luận nào.</p>
+          <p class="hint">Hãy là người đầu tiên bình luận!</p>
+        </div>
+
+        <!-- Comment items -->
+        <div *ngFor="let comment of comments()" class="comment-item">
+          <div class="comment-avatar">
+            <div class="avatar-placeholder"></div>
+          </div>
+          <div class="comment-content">
+            <div class="comment-header">
+              <span class="comment-author">{{ comment.userName }}</span>
+              <span class="comment-time">{{ comment.createdAt | date: 'short' }}</span>
+            </div>
+            <p *ngIf="comment.content" class="comment-text">{{ comment.content }}</p>
+            <div *ngIf="comment.imageUrl" class="comment-image">
+              <img [src]="comment.imageUrl" alt="Comment image" loading="lazy" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Loading more indicator -->
+        <div *ngIf="isLoadingMore()" class="loading-more">
+          <div class="spinner-small"></div>
+          <span>Đang tải thêm...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comment Input Form -->
+    <form class="comment-form" [formGroup]="commentForm" (ngSubmit)="onSubmit()">
+      <!-- Validation Error -->
+      <div *ngIf="validationError() as error" class="validation-error">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path
+            d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" />
+        </svg>
+        <span>{{ error }}</span>
+      </div>
+
+      <!-- Image Preview -->
+      <div *ngIf="imagePreviewUrl" class="image-preview">
+        <img [src]="imagePreviewUrl" alt="Preview" />
+        <button type="button" class="remove-image-btn" (click)="clearImage()">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm0-11.414L9.172 7.757 7.757 9.172 10.586 12l-2.829 2.828 1.415 1.415L12 13.414l2.828 2.829 1.415-1.415L13.414 12l2.829-2.828-1.415-1.415L12 10.586z" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Input Area -->
+      <div class="input-area">
+        <!-- Image Upload Button -->
+        <label class="image-upload-btn" [class.disabled]="isSubmitting()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+          <input type="file" accept="image/*" (change)="onImageSelected($event)" [disabled]="isSubmitting()" hidden />
+        </label>
+
+        <!-- Text Input -->
+        <div class="input-wrapper">
+          <textarea #commentInput formControlName="content" placeholder="Add a comment..." rows="1" [maxLength]="500"
+            (keydown)="onKeyDown($event)"></textarea>
+          <span class="char-count" [class.warning]="characterCount > 450">
+            {{ characterCount }}/500
+          </span>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="submit-btn" [disabled]="!canSubmit" [class.submitting]="isSubmitting()">
+          <svg *ngIf="!isSubmitting()" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+          </svg>
+          <div *ngIf="isSubmitting()" class="spinner-tiny"></div>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

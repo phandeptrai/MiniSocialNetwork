@@ -1,0 +1,250 @@
+/* ==================== */
+/* Profile Page */
+/* Light Theme - White & Blue */
+/* ==================== */
+
+.profile-page {
+    max-width: 100%;
+    margin: 0 auto;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ==================== */
+/* Cover Photo */
+/* ==================== */
+
+.cover-photo {
+    height: 180px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #6B8DD6 100%);
+    position: relative;
+}
+
+/* ==================== */
+/* Profile Header */
+/* ==================== */
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 0 24px 20px;
+    margin-top: -40px;
+    position: relative;
+}
+
+.profile-info {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.avatar-wrapper {
+    flex-shrink: 0;
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 4px solid #ffffff;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.user-details {
+    padding-bottom: 8px;
+}
+
+.name-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.name {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #14171a;
+}
+
+.username {
+    font-size: 0.95rem;
+    color: #657786;
+}
+
+.bio {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #657786;
+    max-width: 400px;
+}
+
+/* Edit Profile Button */
+.edit-profile-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    background: #1da1f2;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 50px;
+}
+
+.edit-profile-btn:hover {
+    background: #1a91da;
+}
+
+.edit-icon {
+    font-size: 14px;
+}
+
+/* ==================== */
+/* Profile Stats */
+/* ==================== */
+
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    padding: 20px 24px;
+    border-top: 1px solid #e8ecf0;
+    border-bottom: 1px solid #e8ecf0;
+    background: #fafbfc;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #14171a;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #657786;
+    letter-spacing: 0.5px;
+}
+
+/* ==================== */
+/* Posts Section */
+/* ==================== */
+
+.posts-section {
+    padding: 24px;
+}
+
+.posts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.posts-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #14171a;
+}
+
+.posts-count {
+    font-size: 0.85rem;
+    color: #657786;
+}
+
+/* Loading */
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    color: #657786;
+    gap: 16px;
+}
+
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e8ecf0;
+    border-top-color: #1da1f2;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Posts List */
+.posts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: #657786;
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* ==================== */
+/* Responsive */
+/* ==================== */
+
+@media (max-width: 640px) {
+    .profile-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .profile-info {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .user-details {
+        text-align: center;
+    }
+
+    .name-row {
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .edit-profile-btn {
+        margin-top: 16px;
+    }
+
+    .profile-stats {
+        gap: 32px;
+    }
+}

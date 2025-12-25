@@ -62,7 +62,7 @@ export interface PageResponse<T> {
 export class PostService {
   private readonly API_URL = `${environment.apiUrl}/posts`;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /* ===== GET ALL POSTS (with pagination) ===== */
   getPosts(page = 0, size = 20): Observable<PageResponse<PostResponse>> {
@@ -96,12 +96,10 @@ export class PostService {
 
   /* ===== CREATE POST (multipart/form-data) ===== */
   createPost(
-    authorId: string,
     content: string | null,
     images: File[]
   ): Observable<PostResponse> {
     const formData = new FormData();
-    formData.append('authorId', authorId);
 
     if (content && content.trim().length > 0) {
       formData.append('content', content.trim());
@@ -130,13 +128,10 @@ export class PostService {
   }
 
   /* ===== TOGGLE LIKE / UNLIKE ===== */
-  toggleLike(postId: string, userId: string): Observable<PostResponse> {
+  toggleLike(postId: string): Observable<PostResponse> {
     return this.http.post<PostResponse>(
       `${this.API_URL}/${postId}/like`,
-      null,
-      {
-        params: new HttpParams().set('userId', userId),
-      }
+      null
     );
   }
 

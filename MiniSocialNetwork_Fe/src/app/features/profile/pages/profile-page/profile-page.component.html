@@ -1,0 +1,73 @@
+<div class="profile-page">
+    <!-- Cover Photo -->
+    <div class="cover-photo"></div>
+
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="profile-info">
+            <div class="avatar-wrapper">
+                <img [src]="userProfile().avatarUrl" [alt]="userProfile().name" class="avatar" />
+            </div>
+
+            <div class="user-details">
+                <div class="name-row">
+                    <h1 class="name">{{ userProfile().name }}</h1>
+                    <span class="username">&#64;{{ userProfile().username }}</span>
+                </div>
+                <p class="bio">{{ userProfile().bio }}</p>
+            </div>
+        </div>
+
+        <button class="edit-profile-btn" (click)="onEditProfile()">
+            <span class="edit-icon">✏️</span>
+            Edit Profile
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="profile-stats">
+        <div class="stat-item">
+            <span class="stat-value">{{ userProfile().postCount }}</span>
+            <span class="stat-label">POSTS</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value">{{ userProfile().followerCount }}</span>
+            <span class="stat-label">FOLLOWERS</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value">{{ userProfile().followingCount }}</span>
+            <span class="stat-label">FOLLOWING</span>
+        </div>
+    </div>
+
+    <!-- Posts Section -->
+    <div class="posts-section">
+        <div class="posts-header">
+            <h2>Your Posts</h2>
+            <span class="posts-count">Showing {{ posts().length }} updates</span>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" *ngIf="isLoading()">
+            <div class="spinner"></div>
+            <span>Loading posts...</span>
+        </div>
+
+        <!-- Posts List -->
+        <div class="posts-list" *ngIf="!isLoading()">
+            <div *ngIf="posts().length === 0" class="empty-state">
+                <p>You haven't posted anything yet.</p>
+            </div>
+
+            <app-post-card *ngFor="let post of posts()" [post]="{
+          id: post.id,
+          authorName: userProfile().name,
+          createdAt: post.createdAt,
+          content: post.content,
+          imageUrls: post.imageUrls || [],
+          likeCount: post.likeCount,
+          commentCount: post.commentCount
+        }" (like)="onLike(post)"></app-post-card>
+        </div>
+    </div>
+</div>

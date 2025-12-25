@@ -7,6 +7,8 @@ import java.util.List;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.data.domain.Slice;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,9 +34,12 @@ public class PostController {
 
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<PostResponse> createPost(
-            @RequestParam("authorId") String authorId,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "content", required = false) String content,
             @RequestParam(value = "images", required = false) MultipartFile[] images) throws IOException {
+
+        // Lấy user ID từ JWT token (sub claim)
+        String authorId = jwt.getSubject();
 
         List<MultipartFile> imageList = images != null ? Arrays.asList(images) : List.of();
         Post saved = postService.createPost(authorId, content, imageList);
@@ -58,11 +63,12 @@ public class PostController {
         return ResponseEntity.ok(SliceResponse.of(content, slice.hasNext()));
     }
 
-
     @PostMapping("/{id}/like")
     public ResponseEntity<PostResponse> toggleLike(
             @PathVariable String id,
-            @RequestParam("userId") String userId) {
+            @AuthenticationPrincipal Jwt jwt) {
+        // Lấy user ID từ JWT token
+        String userId = jwt.getSubject();
         Post post = postService.toggleLike(id, userId);
         return ResponseEntity.ok(PostResponse.from(post));
     }
@@ -75,13 +81,15 @@ public class PostController {
 
     @GetMapping("/feed")
     public ResponseEntity<SliceResponse<PostResponse>> getFeed(
-            @RequestParam("userId") String userId,
+            @AuthenticationPrincipal Jwt jwt,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
+
+        // Lấy user ID từ JWT token
+        String userId = jwt.getSubject();
 
         var slice = postService.getPostsByFollowing(userId, page, size);
         List<PostResponse> content = slice.map(PostResponse::from).getContent();
         return ResponseEntity.ok(SliceResponse.of(content, slice.hasNext()));
     }
 }
-

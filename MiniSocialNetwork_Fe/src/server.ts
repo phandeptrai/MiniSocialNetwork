@@ -46,6 +46,7 @@ app.use(
     target: keycloakTarget,
     changeOrigin: true,
     xfwd: true,
+    pathRewrite: { '^/keycloak': '' },
   }),
 );
 

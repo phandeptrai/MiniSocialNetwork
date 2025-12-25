@@ -1,6 +1,6 @@
 /* ==================== */
 /* Message List Component */
-/* Dark Theme - Flat Design */
+/* Light Theme - White & Blue */
 /* ==================== */
 
 :host {
@@ -8,7 +8,7 @@
   flex-direction: column;
   flex: 1;
   overflow: hidden;
-  background: #0a0a0a;
+  background: #ffffff;
 }
 
 .message-list-container {
@@ -27,8 +27,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  background: #111111;
-  border-bottom: 1px solid #1e1e1e;
+  background: #ffffff;
+  border-bottom: 1px solid #e8ecf0;
   flex-shrink: 0;
 }
 
@@ -54,8 +54,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #262626;
-  color: #a3a3a3;
+  background: #e8ecf0;
+  color: #657786;
   font-size: 1.1rem;
   font-weight: 600;
 }
@@ -70,7 +70,7 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 500;
-  color: #e5e5e5;
+  color: #14171a;
 }
 
 .header-status {
@@ -111,7 +111,7 @@
 .empty-chat-icon {
   width: 80px;
   height: 80px;
-  color: #404040;
+  color: #9ca3af;
   margin-bottom: 20px;
 }
 
@@ -119,13 +119,13 @@
   margin: 0 0 10px 0;
   font-size: 1.25rem;
   font-weight: 500;
-  color: #e5e5e5;
+  color: #14171a;
 }
 
 .empty-chat-content p {
   margin: 0;
   font-size: 0.9rem;
-  color: #737373;
+  color: #657786;
   line-height: 1.5;
 }
 
@@ -150,12 +150,12 @@
 }
 
 .messages-scroll-container::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: #e8ecf0;
   border-radius: 2px;
 }
 
 .messages-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #404040;
+  background: #cbd5e1;
 }
 
 /* ==================== */
@@ -168,15 +168,15 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  color: #737373;
+  color: #657786;
   gap: 12px;
 }
 
 .loading-spinner {
   width: 24px;
   height: 24px;
-  border: 2px solid #262626;
-  border-top-color: #8b5cf6;
+  border: 2px solid #e8ecf0;
+  border-top-color: #1da1f2;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -226,7 +226,7 @@
   align-items: center;
   gap: 4px;
   padding: 12px 16px;
-  background: #1a1a1a;
+  background: #f5f7fa;
   border-radius: 16px;
   border-bottom-left-radius: 4px;
 }
@@ -234,7 +234,7 @@
 .typing-dot {
   width: 6px;
   height: 6px;
-  background: #525252;
+  background: #9ca3af;
   border-radius: 50%;
   animation: typingBounce 1.4s ease-in-out infinite;
 }
@@ -248,9 +248,13 @@
 }
 
 @keyframes typingBounce {
-  0%, 60%, 100% {
+
+  0%,
+  60%,
+  100% {
     transform: translateY(0);
   }
+
   30% {
     transform: translateY(-6px);
   }
@@ -269,10 +273,10 @@
 
 .date-separator span {
   padding: 5px 14px;
-  background: #1a1a1a;
+  background: #f5f7fa;
   border-radius: 16px;
   font-size: 0.75rem;
-  color: #737373;
+  color: #657786;
   font-weight: 500;
 }
 

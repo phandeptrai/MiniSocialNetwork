@@ -119,23 +119,43 @@
   margin-right: 8px;
 }
 
-.comment-input {
-  margin-top: 8px;
+/* Comment Bar - Clickable to open popup */
+.comment-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f3f4f6;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.comment-input input {
-  width: 100%;
-  border-radius: 999px;
-  border: 1px solid #e5e7eb;
-  padding: 6px 12px;
+.comment-bar:hover {
+  opacity: 0.8;
+}
+
+.comment-bar-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  flex-shrink: 0;
+}
+
+.comment-bar-input {
+  flex: 1;
+  background: #f3f4f6;
+  border-radius: 20px;
+  padding: 8px 14px;
+  transition: all 0.2s;
+}
+
+.comment-bar:hover .comment-bar-input {
+  background: #e5e7eb;
+}
+
+.comment-placeholder {
+  color: #9ca3af;
   font-size: 13px;
-  outline: none;
-  background: #f9fafb;
 }
-
-.comment-input input:focus {
-  border-color: #60a5fa;
-  background: #ffffff;
-}
-
-

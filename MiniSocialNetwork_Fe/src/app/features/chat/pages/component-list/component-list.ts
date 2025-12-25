@@ -6,7 +6,7 @@ import { User } from '../../models/user';
 import { ChatStateService } from '../../services/chat-state.service';
 import { ChatApiService } from '../../services/chat-api.service';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../../core/auth/auth';
+import { AuthService } from '../../../../core/services/auth';
 
 @Component({
   selector: 'app-component-list',
@@ -16,7 +16,7 @@ import { AuthService } from '../../../../core/auth/auth';
 })
 export class ComponentList implements OnInit, OnDestroy {
   @ViewChild('conversationsWrapper') private conversationsWrapper!: ElementRef;
-  
+
   conversations$: Observable<Conversation[]>;
   selectedConversation$: Observable<Conversation | null>;
   isLoading$: Observable<boolean>;
@@ -58,7 +58,7 @@ export class ComponentList implements OnInit, OnDestroy {
         const processedConversations = this.processConversations(conversations);
         this.chatState.setConversations(processedConversations);
         this.chatState.setConversationsLoading(false);
-        
+
         // Cập nhật cursor cho infinite scroll
         if (conversations.length > 0) {
           const oldest = conversations[conversations.length - 1];
@@ -85,7 +85,7 @@ export class ComponentList implements OnInit, OnDestroy {
   onScroll(event: Event): void {
     const element = event.target as HTMLElement;
     const scrollBottom = element.scrollHeight - element.scrollTop - element.clientHeight;
-    
+
     // Load thêm khi scroll gần cuối (< 100px từ bottom)
     if (scrollBottom < 100 && !this.isLoadingMore && this.hasMoreConversations) {
       this.loadMoreConversations();
@@ -94,14 +94,14 @@ export class ComponentList implements OnInit, OnDestroy {
 
   private loadMoreConversations(): void {
     if (!this.oldestCursor) return;
-    
+
     this.isLoadingMore = true;
     this.chatApi.getConversations(this.oldestCursor.updatedAt, this.oldestCursor.id).subscribe({
       next: olderConversations => {
         if (olderConversations.length > 0) {
           const processedConversations = this.processConversations(olderConversations);
           this.chatState.addOlderConversations(processedConversations);
-          
+
           const oldest = olderConversations[olderConversations.length - 1];
           this.oldestCursor = { updatedAt: oldest.updatedAt, id: oldest.id };
           this.hasMoreConversations = olderConversations.length >= 20;

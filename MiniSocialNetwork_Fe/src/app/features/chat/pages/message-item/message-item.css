@@ -1,6 +1,6 @@
 /* ==================== */
 /* Message Item Component */
-/* Dark Theme - Flat Design */
+/* Light Theme - White & Blue */
 /* ==================== */
 
 :host {
@@ -20,6 +20,7 @@
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -79,14 +80,14 @@
 
 /* Received message styles */
 .message-wrapper.received .message-bubble {
-  background: #1a1a1a;
-  color: #e5e5e5;
+  background: #f5f7fa;
+  color: #14171a;
   border-bottom-left-radius: 4px;
 }
 
 /* Sent message styles */
 .message-wrapper.sent .message-bubble {
-  background: #8b5cf6;
+  background: #1da1f2;
   color: #ffffff;
   border-bottom-right-radius: 4px;
 }
@@ -99,17 +100,17 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #1a1a1a;
-  color: #525252;
+  background: #f5f7fa;
+  color: #9ca3af;
   font-style: italic;
-  border: 1px dashed #333333;
+  border: 1px dashed #e8ecf0;
   padding: 10px 14px;
 }
 
 .message-wrapper.sent .message-bubble.deleted {
-  background: #1a1a1a;
-  color: #525252;
-  border: 1px dashed #333333;
+  background: #f5f7fa;
+  color: #9ca3af;
+  border: 1px dashed #e8ecf0;
 }
 
 .deleted-icon {
@@ -151,7 +152,7 @@
 }
 
 .message-wrapper.received .message-time {
-  color: #737373;
+  color: #657786;
 }
 
 .message-wrapper.sent .message-time {
@@ -177,13 +178,16 @@
 }
 
 .status-error {
-  color: #ef4444;
+  color: #e0245e;
 }
 
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.5;
   }
+
   50% {
     opacity: 1;
   }
@@ -225,7 +229,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(29, 161, 242, 0.1);
   border-radius: 10px;
   text-decoration: none;
   color: inherit;
@@ -234,15 +238,15 @@
 }
 
 .message-wrapper.received .attachment-file {
-  background: #262626;
+  background: #e8ecf0;
 }
 
 .attachment-file:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(29, 161, 242, 0.15);
 }
 
 .message-wrapper.received .attachment-file:hover {
-  background: #303030;
+  background: #dde3e9;
 }
 
 .file-icon {
@@ -251,13 +255,13 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(29, 161, 242, 0.2);
   border-radius: 8px;
   flex-shrink: 0;
 }
 
 .message-wrapper.received .file-icon {
-  background: #8b5cf6;
+  background: #1da1f2;
   color: white;
 }
 
@@ -316,15 +320,15 @@
   height: 28px;
   padding: 0;
   border: none;
-  background: #262626;
+  background: #e8ecf0;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.15s ease;
-  color: #737373;
+  color: #657786;
 }
 
 .btn-action:hover {
-  background: #dc2626;
+  background: #e0245e;
   color: #ffffff;
 }
 

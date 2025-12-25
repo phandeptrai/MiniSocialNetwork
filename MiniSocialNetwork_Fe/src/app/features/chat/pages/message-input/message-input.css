@@ -1,12 +1,12 @@
 /* ==================== */
 /* Message Input Component */
-/* Dark Theme - Flat Design */
+/* Light Theme - White & Blue */
 /* ==================== */
 
 :host {
   display: block;
-  background: #111111;
-  border-top: 1px solid #1e1e1e;
+  background: #ffffff;
+  border-top: 1px solid #e8ecf0;
 }
 
 .message-input-container {
@@ -23,7 +23,7 @@
   gap: 10px;
   margin-bottom: 14px;
   padding: 14px;
-  background: #1a1a1a;
+  background: #f5f7fa;
   border-radius: 12px;
 }
 
@@ -32,7 +32,8 @@
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background: #262626;
+  background: #ffffff;
+  border: 1px solid #e8ecf0;
   border-radius: 10px;
   max-width: 180px;
 }
@@ -47,13 +48,13 @@
 .file-thumbnail svg {
   width: 18px;
   height: 18px;
-  color: #8b5cf6;
+  color: #1da1f2;
   flex-shrink: 0;
 }
 
 .file-thumbnail .file-name {
   font-size: 0.8rem;
-  color: #a3a3a3;
+  color: #657786;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -67,7 +68,7 @@
   height: 22px;
   padding: 0;
   border: none;
-  background: #3f3f46;
+  background: #e8ecf0;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -75,13 +76,13 @@
 }
 
 .btn-remove-file:hover {
-  background: #dc2626;
+  background: #e0245e;
 }
 
 .btn-remove-file svg {
   width: 12px;
   height: 12px;
-  color: #a3a3a3;
+  color: #657786;
 }
 
 .btn-remove-file:hover svg {
@@ -96,15 +97,17 @@
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  background: #1a1a1a;
+  background: #f5f7fa;
+  border: 1px solid #e8ecf0;
   border-radius: 20px;
   padding: 6px 10px;
   transition: all 0.15s ease;
 }
 
 .input-form:focus-within {
-  background: #1f1f1f;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.25);
+  background: #ffffff;
+  border-color: #1da1f2;
+  box-shadow: 0 0 0 3px rgba(29, 161, 242, 0.1);
 }
 
 /* ==================== */
@@ -122,13 +125,13 @@
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s ease;
-  color: #737373;
+  color: #657786;
   flex-shrink: 0;
 }
 
 .btn-attachment:hover {
-  background: #262626;
-  color: #8b5cf6;
+  background: #e8f5fe;
+  color: #1da1f2;
 }
 
 .btn-attachment svg {
@@ -151,7 +154,7 @@
   border: none;
   background: transparent;
   font-size: 0.9rem;
-  color: #e5e5e5;
+  color: #14171a;
   resize: none;
   outline: none;
   max-height: 120px;
@@ -160,7 +163,7 @@
 }
 
 .message-textarea::placeholder {
-  color: #525252;
+  color: #9ca3af;
 }
 
 .message-textarea:disabled {
@@ -184,13 +187,13 @@
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s ease;
-  color: #737373;
+  color: #657786;
   flex-shrink: 0;
 }
 
 .btn-emoji:hover {
-  background: #262626;
-  color: #fbbf24;
+  background: #fef3c7;
+  color: #f59e0b;
 }
 
 .btn-emoji svg {
@@ -210,7 +213,7 @@
   height: 40px;
   padding: 0;
   border: none;
-  background: #8b5cf6;
+  background: #1da1f2;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -219,11 +222,11 @@
 }
 
 .btn-send:hover:not(:disabled) {
-  background: #7c3aed;
+  background: #1a91da;
 }
 
 .btn-send:disabled {
-  background: #3f3f46;
+  background: #e8ecf0;
   cursor: not-allowed;
 }
 

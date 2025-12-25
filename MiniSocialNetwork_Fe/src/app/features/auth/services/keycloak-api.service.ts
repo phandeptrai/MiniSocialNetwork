@@ -29,7 +29,7 @@ export class KeycloakApiService {
   // Keycloak configuration - sử dụng proxy để tránh CORS
   private readonly keycloakUrl = '/keycloak';
   private readonly realm = 'social-network';
-  private readonly clientId = 'social-network-client';
+  private readonly clientId = 'social-network-frontend';
 
   private get tokenEndpoint(): string {
     return `${this.keycloakUrl}/realms/${this.realm}/protocol/openid-connect/token`;
@@ -152,7 +152,8 @@ export class KeycloakApiService {
 
   /**
    * Kiểm tra đã đăng nhập chưa
-   * Nếu token hết hạn sẽ tự động xóa
+   * Chỉ kiểm tra token có tồn tại không, không check expiry
+   * (để interceptor tự động refresh token khi cần)
    */
   isAuthenticated(): boolean {
     if (!isPlatformBrowser(this.platformId)) {
@@ -160,22 +161,7 @@ export class KeycloakApiService {
     }
 
     const token = this.getAccessToken();
-    const expiry = localStorage.getItem('token_expiry');
-
-    if (!token || !expiry) {
-      return false;
-    }
-
-    // Kiểm tra token có hết hạn không
-    const isExpired = Date.now() >= parseInt(expiry, 10);
-
-    if (isExpired) {
-      // Xóa token hết hạn
-      this.logout();
-      return false;
-    }
-
-    return true;
+    return !!token;
   }
 
   /**
@@ -209,8 +195,9 @@ export class KeycloakApiService {
     localStorage.setItem('access_token', response.access_token);
     localStorage.setItem('refresh_token', response.refresh_token);
 
-    // Lưu thời gian hết hạn (trừ đi 30 giây để refresh sớm)
-    const expiryTime = Date.now() + (response.expires_in - 30) * 1000;
+    // Lưu thời gian hết hạn - thêm 24 giờ buffer cho testing
+    // (thực tế cần cấu hình token lifespan ở Keycloak)
+    const expiryTime = Date.now() + (response.expires_in + 86400) * 1000;
     localStorage.setItem('token_expiry', expiryTime.toString());
   }
 
