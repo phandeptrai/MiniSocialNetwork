@@ -15,7 +15,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class MessageInputComponent {
   @ViewChild('messageTextarea') messageTextarea!: ElementRef<HTMLTextAreaElement>;
-  
+
   messageContent = '';
   selectedFiles: File[] = [];
   isUploading = false;
@@ -24,7 +24,7 @@ export class MessageInputComponent {
     private chatApi: ChatApiService,
     private chatSocket: ChatSocketService,
     private chatState: ChatStateService
-  ) {}
+  ) { }
 
   /**
    * Xử lý khi người dùng chọn file từ máy tính.
@@ -58,40 +58,55 @@ export class MessageInputComponent {
       return;
     }
 
+    // Lấy pending recipient (nếu có)
+    const pendingRecipient = this.chatState.getPendingRecipientValue();
+
     this.chatState.getSelectedConversation().pipe(take(1)).subscribe(conv => {
-      if (!conv) {
+      // Ưu tiên conversation đang chọn
+      if (conv) {
+        if (this.selectedFiles.length > 0) {
+          this.handleFileUploadAndSendMessage(conv.id, undefined, content);
+        } else {
+          this.sendTextMessage(conv.id, undefined, content);
+        }
+      }
+      // Nếu không có conversation nhưng có pending recipient
+      else if (pendingRecipient) {
+        if (this.selectedFiles.length > 0) {
+          this.handleFileUploadAndSendMessage(undefined, pendingRecipient.id, content);
+        } else {
+          this.sendTextMessage(undefined, pendingRecipient.id, content);
+        }
+      }
+      else {
         alert("Please select a conversation to send a message.");
         return;
-      }
-
-      if (this.selectedFiles.length > 0) {
-        this.handleFileUploadAndSendMessage(conv.id, content);
-      } else {
-        // Chỉ gửi tin nhắn text
-        this.sendTextMessage(conv.id, content);
       }
     });
   }
 
-  private handleFileUploadAndSendMessage(conversationId: string, content: string): void {
+  private handleFileUploadAndSendMessage(conversationId: string | undefined, recipientId: string | undefined, content: string): void {
     this.isUploading = true;
-    
-    // Giai đoạn 1: Upload file qua API REST
-    this.chatApi.uploadAttachments(this.selectedFiles, conversationId).subscribe({
+
+    // Upload file: nếu chưa có conversationId thì có thể cần gửi recipientId cho API upload (tùy backend support)
+    // Hiện tại chat-api.service.ts hỗ trợ cả conversationId và recipientId
+    this.chatApi.uploadAttachments(this.selectedFiles, conversationId, recipientId).subscribe({
       next: (uploadedAttachments) => {
-        // Giai đoạn 2: Gửi tin nhắn qua WebSocket với tham chiếu đến file đã upload
-        const payload = {
-          conversationId: conversationId,
+        const payload: any = {
           content: content,
-          attachments: uploadedAttachments.map(att => ({ // Chỉ gửi các thông tin cần thiết
+          attachments: uploadedAttachments.map(att => ({
             objectKey: att.objectKey,
             fileName: att.fileName,
             fileType: att.fileType,
             fileSize: att.fileSize
           }))
         };
+
+        if (conversationId) payload.conversationId = conversationId;
+        if (recipientId) payload.recipientId = recipientId;
+
         this.chatSocket.sendMessage(payload);
-        
+
         // Reset form
         this.isUploading = false;
         this.messageContent = '';
@@ -106,11 +121,12 @@ export class MessageInputComponent {
     });
   }
 
-  private sendTextMessage(conversationId: string, content: string): void {
-    const payload = {
-      conversationId: conversationId,
-      content: content,
-    };
+  private sendTextMessage(conversationId: string | undefined, recipientId: string | undefined, content: string): void {
+    const payload: any = { content: content };
+
+    if (conversationId) payload.conversationId = conversationId;
+    if (recipientId) payload.recipientId = recipientId;
+
     this.chatSocket.sendMessage(payload);
     this.messageContent = '';
     this.resetTextareaSize();

@@ -1,11 +1,11 @@
 import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, combineLatest } from 'rxjs';
 import { Message } from '../../models/message';
 import { Conversation } from '../../models/conversation';
 import { User } from '../../models/user';
 import { ChatApiService } from '../../services/chat-api.service';
-import { ChatStateService } from '../../services/chat-state.service';
-import { distinctUntilChanged, filter, tap } from 'rxjs/operators';
+import { ChatStateService, PendingRecipient } from '../../services/chat-state.service';
+import { distinctUntilChanged, filter, tap, map } from 'rxjs/operators';
 import { ChatSocketService } from '../../services/chat-socket.service';
 import { CommonModule } from '@angular/common';
 import { MessageItem } from '../message-item/message-item';
@@ -20,7 +20,12 @@ export class MessageList implements OnInit, OnDestroy, AfterViewChecked {
   @ViewChild('scrollContainer') private scrollContainer!: ElementRef;
   messages$: Observable<Message[]>;
   selectedConversation$: Observable<Conversation | null>;
+  pendingRecipient$: Observable<PendingRecipient | null>;
   isLoading$: Observable<boolean>;
+
+  // Observable kết hợp để xác định có hiển thị main chat area không (khi có conversation HOẶC pending recipient)
+  shouldShowChatArea$: Observable<boolean>;
+
   private shouldScrollToBottom = false;
   private messageCount = 0;
   private oldestMessageId: string | null = null;
@@ -37,7 +42,16 @@ export class MessageList implements OnInit, OnDestroy, AfterViewChecked {
   ) {
     this.messages$ = this.chatState.getMessagesForSelectedConversation();
     this.selectedConversation$ = this.chatState.getSelectedConversation();
+    this.pendingRecipient$ = this.chatState.getPendingRecipient();
     this.isLoading$ = this.chatState.isMessagesLoading();
+
+    // Hiển thị chat area nếu có selectedConversation hoặc pendingRecipient
+    this.shouldShowChatArea$ = combineLatest([
+      this.selectedConversation$,
+      this.pendingRecipient$
+    ]).pipe(
+      map(([conv, pending]) => !!conv || !!pending)
+    );
   }
 
   ngOnInit(): void {
@@ -77,7 +91,7 @@ export class MessageList implements OnInit, OnDestroy, AfterViewChecked {
     if (element.scrollTop > 100) {
       return;
     }
-    
+
     if (this.chatState.getIsMessagesLoadingValue() || !this.hasMoreMessages) {
       return;
     }

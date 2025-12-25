@@ -1,68 +1,74 @@
 <div class="message-list-container">
   <!-- Chat header -->
-  <div class="chat-header" *ngIf="selectedConversation$ | async as conversation">
-    <div class="header-info">
-      <div class="header-avatar">
-        <img 
-          *ngIf="conversation.displayAvatarUrl" 
-          [src]="conversation.displayAvatarUrl" 
-          [alt]="conversation.displayName" />
-        <div *ngIf="!conversation.displayAvatarUrl" class="avatar-placeholder">
-          {{ conversation.displayName?.charAt(0)?.toUpperCase() || 'C' }}
+  <ng-container *ngIf="{ 
+    conversation: selectedConversation$ | async, 
+    pending: pendingRecipient$ | async 
+  } as data">
+    <div class="chat-header" *ngIf="data.conversation || data.pending">
+      <div class="header-info">
+        <div class="header-avatar">
+          <!-- Ưu tiên hiển thị từ conversation, nếu không thì hiển thị pending -->
+          <ng-container *ngIf="data.conversation; else pendingAvatar">
+            <img *ngIf="data.conversation.displayAvatarUrl" [src]="data.conversation.displayAvatarUrl"
+              [alt]="data.conversation.displayName" />
+            <div *ngIf="!data.conversation.displayAvatarUrl" class="avatar-placeholder">
+              {{ data.conversation.displayName?.charAt(0)?.toUpperCase() || 'C' }}
+            </div>
+          </ng-container>
+          <ng-template #pendingAvatar>
+            <img [src]="data.pending?.avatarUrl" [alt]="data.pending?.name" />
+          </ng-template>
+        </div>
+        <div class="header-details">
+          <h3 class="header-name">
+            {{ data.conversation?.displayName || data.conversation?.name || data.pending?.name || 'Chat' }}
+          </h3>
+          <span class="header-status">
+            <span class="status-dot"></span>
+            Online
+          </span>
         </div>
       </div>
-      <div class="header-details">
-        <h3 class="header-name">{{ conversation.displayName || conversation.name || 'Chat' }}</h3>
-        <span class="header-status">
-          <span class="status-dot"></span>
-          Online
-        </span>
+    </div>
+
+    <!-- Empty state when NO conversation AND NO pending recipient -->
+    <div class="empty-chat-state" *ngIf="!data.conversation && !data.pending">
+      <div class="empty-chat-content">
+        <svg class="empty-chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <h3>Select a conversation</h3>
+        <p>Choose a conversation from the list or start a new message</p>
       </div>
     </div>
-  </div>
 
-  <!-- Empty state when no conversation selected -->
-  <div class="empty-chat-state" *ngIf="!(selectedConversation$ | async)">
-    <div class="empty-chat-content">
-      <svg class="empty-chat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-      </svg>
-      <h3>Select a conversation</h3>
-      <p>Choose a conversation from the list to start chatting</p>
-    </div>
-  </div>
+    <!-- Messages area -->
+    <div class="messages-scroll-container" #scrollContainer *ngIf="data.conversation || data.pending"
+      (scroll)="onScrollUp()">
 
-  <!-- Messages area -->
-  <div 
-    class="messages-scroll-container" 
-    #scrollContainer 
-    *ngIf="selectedConversation$ | async"
-    (scroll)="onScrollUp()">
-    
-    <!-- Loading indicator for older messages -->
-    <div class="loading-more" *ngIf="isLoading$ | async">
-      <div class="loading-spinner"></div>
-      <span>Loading messages...</span>
-    </div>
-
-    <!-- Messages -->
-    <div class="messages-wrapper">
-      <app-message-item 
-        *ngFor="let message of messages$ | async; trackBy: trackByMessageId" 
-        [message]="message">
-      </app-message-item>
-    </div>
-
-    <!-- Typing indicator -->
-    <div class="typing-indicator" style="display: none;">
-      <div class="typing-avatar">
-        <img src="https://i.pravatar.cc/36" alt="Typing user" />
+      <!-- Loading indicator for older messages -->
+      <div class="loading-more" *ngIf="isLoading$ | async">
+        <div class="loading-spinner"></div>
+        <span>Loading messages...</span>
       </div>
-      <div class="typing-bubble">
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
+
+      <!-- Messages -->
+      <div class="messages-wrapper">
+        <app-message-item *ngFor="let message of messages$ | async; trackBy: trackByMessageId" [message]="message">
+        </app-message-item>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing-indicator" style="display: none;">
+        <div class="typing-avatar">
+          <img src="https://i.pravatar.cc/36" alt="Typing user" />
+        </div>
+        <div class="typing-bubble">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
       </div>
     </div>
-  </div>
+  </ng-container>
 </div>

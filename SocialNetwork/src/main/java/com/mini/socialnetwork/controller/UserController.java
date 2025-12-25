@@ -56,4 +56,33 @@ public class UserController {
         User savedUser = userRepository.save(testUser);
         return ResponseEntity.ok(savedUser);
     }
+
+    private final com.mini.socialnetwork.modules.auth.service.KeycloakAdminService keycloakAdminService;
+
+    /**
+     * Get user by ID (Fetched from Keycloak)
+     * GET /api/users/{id}
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable String id) {
+        try {
+            java.util.Map<String, Object> keycloakUser = keycloakAdminService.getUserById(id);
+            if (keycloakUser == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Map Keycloak User to User model or DTO
+            User user = new User();
+            user.setId(UUID.fromString((String) keycloakUser.get("id")));
+            user.setUsername((String) keycloakUser.get("username"));
+            user.setEmail((String) keycloakUser.get("email"));
+            user.setName(((String) keycloakUser.getOrDefault("firstName", "")) + " "
+                    + ((String) keycloakUser.getOrDefault("lastName", "")));
+            user.setBio("User from Keycloak"); // Keycloak attributes extraction needed for bio/avatar if stored there
+
+            return ResponseEntity.ok(user);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

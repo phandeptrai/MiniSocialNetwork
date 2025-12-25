@@ -28,17 +28,17 @@ import com.mini.socialnetwork.modules.chat.repository.MessageRepository;
  *
  * <h2>Chức năng chính:</h2>
  * <ul>
- *   <li>Tạo tin nhắn mới (có hoặc không có file đính kèm)</li>
- *   <li>Tìm hoặc tạo cuộc hội thoại 1-1</li>
- *   <li>Xóa tin nhắn (soft-delete)</li>
- *   <li>Cập nhật metadata cuộc hội thoại (denormalization)</li>
+ * <li>Tạo tin nhắn mới (có hoặc không có file đính kèm)</li>
+ * <li>Tìm hoặc tạo cuộc hội thoại 1-1</li>
+ * <li>Xóa tin nhắn (soft-delete)</li>
+ * <li>Cập nhật metadata cuộc hội thoại (denormalization)</li>
  * </ul>
  *
  * <h2>Validation:</h2>
  * <ul>
- *   <li>Tối đa 5 file đính kèm mỗi tin nhắn</li>
- *   <li>Chỉ participant mới được gửi tin vào conversation</li>
- *   <li>Chỉ sender mới được xóa tin nhắn của mình</li>
+ * <li>Tối đa 5 file đính kèm mỗi tin nhắn</li>
+ * <li>Chỉ participant mới được gửi tin vào conversation</li>
+ * <li>Chỉ sender mới được xóa tin nhắn của mình</li>
  * </ul>
  *
  * @author MiniSocialNetwork Team
@@ -62,8 +62,8 @@ public class MessageService {
      * <p>
      * Phương thức này xử lý hai trường hợp:
      * <ul>
-     *   <li>Có conversationId: Gửi tin vào conversation đã tồn tại</li>
-     *   <li>Có recipientId: Tìm hoặc tạo conversation 1-1 rồi gửi tin</li>
+     * <li>Có conversationId: Gửi tin vào conversation đã tồn tại</li>
+     * <li>Có recipientId: Tìm hoặc tạo conversation 1-1 rồi gửi tin</li>
      * </ul>
      * Sau khi lưu tin nhắn, cập nhật metadata của conversation (lastMessage*).
      * </p>
@@ -74,12 +74,14 @@ public class MessageService {
      * tạo entity Attachment từ DTO và liên kết với Message.
      * </p>
      *
-     * @param request yêu cầu gửi tin nhắn từ client
+     * @param request  yêu cầu gửi tin nhắn từ client
      * @param senderId ID của người gửi (từ JWT)
      * @return tin nhắn đã được lưu với ID và createdAt
      * @throws ResponseStatusException 400 nếu quá 5 file đính kèm
-     * @throws ResponseStatusException 400 nếu thiếu cả conversationId và recipientId
-     * @throws ResponseStatusException 403 nếu sender không phải participant của conversation
+     * @throws ResponseStatusException 400 nếu thiếu cả conversationId và
+     *                                 recipientId
+     * @throws ResponseStatusException 403 nếu sender không phải participant của
+     *                                 conversation
      */
     @Transactional
     public Message createMessage(SendMessageRequest request, String senderId) {
@@ -128,7 +130,9 @@ public class MessageService {
 
         Message savedMessage = messageRepository.save(message);
 
-        String lastMessageContentTruncated = savedMessage.getContent().length() > 50 ? savedMessage.getContent().substring(0, 50) + "..." : savedMessage.getContent();
+        String lastMessageContentTruncated = savedMessage.getContent().length() > 50
+                ? savedMessage.getContent().substring(0, 50) + "..."
+                : savedMessage.getContent();
         conversation.setLastMessageContent(lastMessageContentTruncated);
         conversation.setLastMessageSenderId(savedMessage.getSenderId());
         conversation.setLastMessageType(savedMessage.getMessageType());
@@ -153,12 +157,12 @@ public class MessageService {
      * - ParticipantIds chứa chính xác 2 user: sender và recipient
      * </p>
      *
-     * @param senderId ID của người khởi tạo cuộc hội thoại
+     * @param senderId    ID của người khởi tạo cuộc hội thoại
      * @param recipientId ID của người nhận
      * @return cuộc hội thoại đã tồn tại hoặc mới tạo
      */
     public Conversation findOrCreateConversation(String senderId, String recipientId) {
-        Set<String> participantIds = Set.of(senderId, recipientId);
+        Set<String> participantIds = new java.util.HashSet<>(Set.of(senderId, recipientId));
 
         return conversationRepository
                 .findByTypeAndExactParticipants(ConversationType.ONE_TO_ONE, participantIds, participantIds.size())
@@ -187,7 +191,7 @@ public class MessageService {
      * </p>
      *
      * @param messageId ID của tin nhắn cần xóa
-     * @param userId ID của người yêu cầu xóa (từ JWT)
+     * @param userId    ID của người yêu cầu xóa (từ JWT)
      * @return tin nhắn đã được đánh dấu deleted
      * @throws ResponseStatusException 404 nếu không tìm thấy tin nhắn
      * @throws ResponseStatusException 403 nếu user không phải sender

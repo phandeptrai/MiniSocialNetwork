@@ -11,7 +11,7 @@ export interface Conversation {
   lastMessageContent: string | null;
   lastMessageSenderId: string | null;
   lastMessageType: Message['messageType'] | null;
-  
+
   // -- Client-side only properties --
   displayName?: string;
   displayAvatarUrl?: string;

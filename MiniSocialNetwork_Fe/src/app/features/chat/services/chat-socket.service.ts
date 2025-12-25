@@ -2,8 +2,9 @@ import { Injectable } from '@angular/core';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { ChatStateService } from './chat-state.service';
+import { ChatApiService } from './chat-api.service'; // Import ChatApiService
 import { Message } from '../models/message';
-import { AuthService } from '../../../core/services/auth';
+import { KeycloakApiService } from '../../auth/services/keycloak-api.service';
 import { DeleteMessageEvent } from '../models/events';
 
 @Injectable({
@@ -14,8 +15,9 @@ export class ChatSocketService {
     private stompClient?: Client;
 
     constructor(
-        private authService: AuthService,
-        private chatState: ChatStateService
+        private keycloakApi: KeycloakApiService,
+        private chatState: ChatStateService,
+        private chatApi: ChatApiService // Inject ChatApiService
     ) { }
 
     public connect(): void {
@@ -24,7 +26,7 @@ export class ChatSocketService {
             return;
         }
 
-        const token = this.authService.getAccessToken();
+        const token = this.keycloakApi.getAccessToken();
         if (!token) {
             console.error('No access token – cannot connect WS');
             return;
@@ -53,6 +55,36 @@ export class ChatSocketService {
             // ✅ Private queue
             this.stompClient?.subscribe('/user/queue/messages', (msg) => {
                 const message: Message = JSON.parse(msg.body);
+                const convId = message.conversationId;
+
+                // Kiểm tra xem conversation này đã có trong state chưa
+                const existingConv = this.chatState.getConversationsValue().find(c => c.id === convId);
+
+                if (!existingConv) {
+                    console.log('New conversation identified, fetching updates in 500ms...', convId);
+
+                    // Thêm delay để đảm bảo Backend commit transaction xong
+                    setTimeout(() => {
+                        this.chatApi.getConversations().subscribe(convs => {
+                            console.log('Fetched updated conversations:', convs.length);
+                            this.chatState.setConversations(convs);
+
+                            // Kiểm tra Pending Recipient
+                            const pending = this.chatState.getPendingRecipientValue();
+                            if (pending) {
+                                // Nếu đang có pending recipient 
+                                // Tìm conversation vừa tạo (nếu API trả về kịp)
+                                const newConv = convs.find(c => c.id === convId);
+                                if (newConv) {
+                                    this.chatState.selectConversation(convId);
+                                    this.chatState.setPendingRecipient(null);
+                                } else {
+                                    console.warn('Still not found conversation after fetch. API lag?');
+                                }
+                            }
+                        });
+                    }, 500);
+                }
 
                 this.chatState.addMessage(
                     message.conversationId,

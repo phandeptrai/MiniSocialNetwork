@@ -231,7 +231,20 @@ export class PeoplePageComponent implements OnInit {
     }
 
     openChat(user: UserCard): void {
-        this.router.navigate(['/chat'], { queryParams: { recipientId: user.id } });
+        console.log('Opening chat with:', user);
+        if (user.id.length < 10) {
+            console.warn('WARNING: User ID seems to be MOCK DATA. Chat will likely fail.');
+            alert('Cannot chat with this user (Mock Data).');
+            return;
+        }
+
+        this.router.navigate(['/chat'], {
+            queryParams: {
+                recipientId: user.id,
+                recipientName: user.name,
+                recipientAvatar: user.avatarUrl
+            }
+        });
     }
 
     refresh(): void {

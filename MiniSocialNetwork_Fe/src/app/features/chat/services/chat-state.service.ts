@@ -17,11 +17,24 @@ export class ChatStateService {
   private readonly conversationsLoading$ = new BehaviorSubject<boolean>(false);
   private readonly messagesLoading$ = new BehaviorSubject<boolean>(false);
 
+  // Cache thông tin user để hiển thị tên/avatar (do API conversation chỉ trả về ID)
+  private readonly userCache = new Map<string, { name: string; avatarUrl: string }>();
+
   // === PUBLIC SELECTORS ===
   getCurrentUser(): Observable<User | null> {
     return this.currentUser$.asObservable();
   }
-  
+
+  updateUserInfo(id: string, name: string, avatarUrl: string): void {
+    if (id && name) {
+      this.userCache.set(id, { name, avatarUrl });
+    }
+  }
+
+  getUserInfo(id: string): { name: string; avatarUrl: string } | undefined {
+    return this.userCache.get(id);
+  }
+
   getCurrentUserValue(): User | null {
     return this.currentUser$.getValue();
   }
@@ -30,13 +43,17 @@ export class ChatStateService {
     return this.conversations$.asObservable();
   }
 
+  getConversationsValue(): Conversation[] {
+    return this.conversations$.getValue();
+  }
+
   getSelectedConversationId(): Observable<string | null> {
     return this.selectedConversationId$.asObservable();
   }
 
   getSelectedConversation(): Observable<Conversation | null> {
     return combineLatest([this.selectedConversationId$, this.conversations$]).pipe(
-      map(([selectedId, conversations]) => 
+      map(([selectedId, conversations]) =>
         selectedId ? conversations.find(c => c.id === selectedId) || null : null
       ),
       distinctUntilChanged((prev, curr) => prev?.id === curr?.id)
@@ -61,7 +78,7 @@ export class ChatStateService {
   isConversationsLoading(): Observable<boolean> {
     return this.conversationsLoading$.asObservable();
   }
-  
+
   isMessagesLoading(): Observable<boolean> {
     return this.messagesLoading$.asObservable();
   }
@@ -111,13 +128,13 @@ export class ChatStateService {
     }
     this.messages$.next({ ...currentMessagesState, [conversationId]: [...existingMessages, message] });
   }
-  
+
   // Action để cập nhật một tin nhắn (ví dụ: gỡ tin, cập nhật trạng thái từ 'sending' sang 'sent')
   updateMessage(conversationId: string, updatedMessage: Message): void {
     const currentMessagesState = this.messages$.getValue();
     const existingMessages = currentMessagesState[conversationId] || [];
     const messageIndex = existingMessages.findIndex(m => m.id === updatedMessage.id || m.tempId === updatedMessage.tempId);
-    
+
     if (messageIndex > -1) {
       const updatedMessages = [...existingMessages];
       updatedMessages[messageIndex] = updatedMessage;
@@ -130,11 +147,11 @@ export class ChatStateService {
     const currentMessagesState = this.messages$.getValue();
     const existingMessages = currentMessagesState[conversationId] || [];
     const messageIndex = existingMessages.findIndex(m => m.id === messageId);
-    
+
     if (messageIndex > -1) {
       const updatedMessages = [...existingMessages];
-      updatedMessages[messageIndex] = { 
-        ...updatedMessages[messageIndex], 
+      updatedMessages[messageIndex] = {
+        ...updatedMessages[messageIndex],
         isDeleted: true,
         content: '' // Xóa nội dung
       };
@@ -146,7 +163,7 @@ export class ChatStateService {
   updateConversationPreview(conversationId: string, message: Message): void {
     const currentConversations = this.conversations$.getValue();
     const convIndex = currentConversations.findIndex(c => c.id === conversationId);
-    
+
     if (convIndex > -1) {
       const updatedConv = {
         ...currentConversations[convIndex],
@@ -155,13 +172,36 @@ export class ChatStateService {
         lastMessageType: message.messageType,
         updatedAt: message.createdAt
       };
-      
+
       const sortedConversations = [
         updatedConv,
         ...currentConversations.filter(c => c.id !== conversationId)
       ].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-      
+
       this.conversations$.next(sortedConversations);
     }
   }
+
+  // === PENDING RECIPIENT STATE (New Logic) ===
+  // State lưu thông tin người nhận khi chưa có conversation thật
+  private readonly pendingRecipient$ = new BehaviorSubject<PendingRecipient | null>(null);
+
+  getPendingRecipient(): Observable<PendingRecipient | null> {
+    return this.pendingRecipient$.asObservable();
+  }
+
+  getPendingRecipientValue(): PendingRecipient | null {
+    return this.pendingRecipient$.getValue();
+  }
+
+  setPendingRecipient(recipient: PendingRecipient | null): void {
+    this.pendingRecipient$.next(recipient);
+  }
+}
+
+// Interface mới cho Pending Recipient
+export interface PendingRecipient {
+  id: string;
+  name: string;
+  avatarUrl: string;
 }

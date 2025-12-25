@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { Observable, Subscription, combineLatest } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { Conversation } from '../../models/conversation';
 import { User } from '../../models/user';
 import { ChatStateService } from '../../services/chat-state.service';
@@ -32,7 +32,17 @@ export class ComponentList implements OnInit, OnDestroy {
     private chatApi: ChatApiService,
     private authService: AuthService
   ) {
-    this.conversations$ = this.chatState.getConversations();
+    // Process conversations mỗi khi có dữ liệu mới từ state HOẶC user thay đổi
+    this.conversations$ = combineLatest([
+      this.chatState.getConversations(),
+      this.chatState.getCurrentUser()
+    ]).pipe(
+      map(([conversations, user]) => {
+        this.currentUser = user;
+        console.log('Processing conversations with user:', user?.id, 'Count:', conversations.length);
+        return this.processConversations(conversations);
+      })
+    );
     this.selectedConversation$ = this.chatState.getSelectedConversation();
     this.isLoading$ = this.chatState.isConversationsLoading();
   }
@@ -55,8 +65,8 @@ export class ComponentList implements OnInit, OnDestroy {
     this.chatState.setConversationsLoading(true);
     this.chatApi.getConversations().subscribe({
       next: conversations => {
-        const processedConversations = this.processConversations(conversations);
-        this.chatState.setConversations(processedConversations);
+        // Không cần process ở đây nữa vì đã làm trong pipe map
+        this.chatState.setConversations(conversations);
         this.chatState.setConversationsLoading(false);
 
         // Cập nhật cursor cho infinite scroll
@@ -99,8 +109,8 @@ export class ComponentList implements OnInit, OnDestroy {
     this.chatApi.getConversations(this.oldestCursor.updatedAt, this.oldestCursor.id).subscribe({
       next: olderConversations => {
         if (olderConversations.length > 0) {
-          const processedConversations = this.processConversations(olderConversations);
-          this.chatState.addOlderConversations(processedConversations);
+          // Không cần process ở đây nữa
+          this.chatState.addOlderConversations(olderConversations);
 
           const oldest = olderConversations[olderConversations.length - 1];
           this.oldestCursor = { updatedAt: oldest.updatedAt, id: oldest.id };
@@ -120,14 +130,27 @@ export class ComponentList implements OnInit, OnDestroy {
   // Hàm này tìm tên và avatar của người còn lại trong chat 1-1
   private processConversations(conversations: Conversation[]): Conversation[] {
     return conversations.map(conv => {
-      if (conv.type === 'ONE_TO_ONE' && this.currentUser) {
-        const otherParticipantId = conv.participantIds.find(id => id !== this.currentUser?.id);
+      if (conv.type === 'ONE_TO_ONE') {
+        let otherParticipantId = conv.participantIds.find(id => id !== this.currentUser?.id);
 
-        // TODO: Cần một service để lấy thông tin user từ ID.
-        // Tạm thời, chúng ta sẽ hiển thị ID.
+        // Nếu không tìm thấy người khác (chat với chính mình), lấy ID đầu tiên
+        if (!otherParticipantId && conv.participantIds.length > 0) {
+          otherParticipantId = conv.participantIds[0];
+        }
+
         if (otherParticipantId) {
-          conv.displayName = `User ${otherParticipantId.substring(0, 8)}...`;
-          conv.displayAvatarUrl = `https://i.pravatar.cc/40?u=${otherParticipantId}`; // Dùng avatar placeholder
+          // Thử lấy từ Cache trước
+          const cachedUser = this.chatState.getUserInfo(otherParticipantId);
+          if (cachedUser) {
+            conv.displayName = cachedUser.name;
+            conv.displayAvatarUrl = cachedUser.avatarUrl;
+          } else {
+            // Fallback: Hiển thị ID (Sau này cần gọi API lấy User Profile)
+            conv.displayName = `User ${otherParticipantId.substring(0, 8)}...`;
+            conv.displayAvatarUrl = `https://i.pravatar.cc/40?u=${otherParticipantId}`;
+          }
+        } else {
+          conv.displayName = "Unknown User";
         }
       } else {
         conv.displayName = conv.name || 'Group Chat';

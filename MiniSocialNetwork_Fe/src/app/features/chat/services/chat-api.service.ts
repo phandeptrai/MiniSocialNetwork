@@ -12,7 +12,7 @@ export class ChatApiService {
   // Proxy sẽ tự động điều hướng các request bắt đầu bằng /api
   private readonly API_URL = '/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   /**
    * Lấy danh sách các cuộc hội thoại của người dùng, hỗ trợ phân trang.
@@ -61,5 +61,9 @@ export class ChatApiService {
    */
   getUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.API_URL}/users`);
+  }
+
+  getUserById(id: string): Observable<User> {
+    return this.http.get<User>(`${this.API_URL}/users/${id}`);
   }
 }
