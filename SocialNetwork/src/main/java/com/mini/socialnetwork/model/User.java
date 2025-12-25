@@ -2,8 +2,8 @@ package com.mini.socialnetwork.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.Instant;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -13,6 +13,7 @@ import java.util.UUID;
  * @author MiniSocialNetwork Team
  * @version 1.0
  */
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -47,4 +48,5 @@ public class User {
     private Instant createdAt;
     private Instant updatedAt;
     private boolean isActive;
+
 }

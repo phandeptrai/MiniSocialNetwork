@@ -14,27 +14,27 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
-@Table(name = "notifications")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name = "notifications")
 public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    private UUID receiverId;   // người nhận
+    private UUID receiverId; // người nhận
 
-    private UUID senderId;     // người gây ra hành động
+    private UUID senderId; // người gây ra hành động
 
-    private Type type;             // LIKE, COMMENT, FOLLOW
+    private Type type; // LIKE, COMMENT, FOLLOW
 
-    private UUID postId;       // null nếu FOLLOW
+    private UUID postId; // null nếu FOLLOW
 
-    private String message;        // "A đã thích bài viết của bạn"
+    private String message; // "A đã thích bài viết của bạn"
 
     private boolean isRead;
 
@@ -46,4 +46,3 @@ public class Notification {
         FOLLOW
     }
 }
-

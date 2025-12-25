@@ -12,6 +12,7 @@ import { MainLayoutComponent } from './shared/components/layout/main-layout.comp
 import { FeedPageComponent } from './features/feed/feed-page.component';
 import { ChatPage } from './features/chat/pages/chat-page/chat-page';
 import { ProfilePageComponent } from './features/profile/pages/profile-page/profile-page.component';
+import { FollowPageComponent } from './pages/follow/follow.page';
 
 export const routes: Routes = [
   // Auth routes (no sidebar)
@@ -49,6 +50,10 @@ export const routes: Routes = [
       {
         path: 'profile',
         component: ProfilePageComponent,
+      },
+      {
+        path: 'follow',
+        component: FollowPageComponent,
       },
       {
         path: '',

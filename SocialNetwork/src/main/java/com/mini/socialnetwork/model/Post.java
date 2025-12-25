@@ -27,11 +27,11 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    private UUID authorId;          // User
+    private UUID authorId; // User
     private String content;
 
     @ElementCollection
-    private List<String> imageUrls;     // up to 4 images
+    private List<String> imageUrls; // up to 4 images
 
     @ElementCollection
     private List<UUID> likes;
@@ -42,4 +42,3 @@ public class Post {
     private Instant updatedAt;
     private boolean isDeleted;
 }
-
