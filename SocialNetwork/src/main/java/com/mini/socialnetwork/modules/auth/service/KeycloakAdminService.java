@@ -2,19 +2,18 @@ package com.mini.socialnetwork.modules.auth.service;
 
 import com.mini.socialnetwork.modules.auth.dto.RegisterRequest;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Service để gọi Keycloak Admin REST API
- * Dùng để tạo user mới khi đăng ký
+ * Dùng để tạo user mới khi đăng ký và lấy danh sách users
  */
 @Service
 public class KeycloakAdminService {
@@ -101,5 +100,77 @@ public class KeycloakAdminService {
             }
             throw new RuntimeException("Failed to create user: " + e.getMessage());
         }
+    }
+
+    /**
+     * Lấy tất cả users từ Keycloak
+     */
+    public List<Map<String, Object>> getAllUsers() {
+        String adminToken = getAdminToken();
+        String usersUrl = keycloakUrl + "/admin/realms/" + realm + "/users?max=1000";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(adminToken);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<List<Map<String, Object>>> response = restTemplate.exchange(
+                    usersUrl,
+                    HttpMethod.GET,
+                    request,
+                    new ParameterizedTypeReference<List<Map<String, Object>>>() {
+                    });
+            return response.getBody() != null ? response.getBody() : Collections.emptyList();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get users from Keycloak: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lấy user theo ID từ Keycloak
+     */
+    public Map<String, Object> getUserById(String userId) {
+        String adminToken = getAdminToken();
+        String userUrl = keycloakUrl + "/admin/realms/" + realm + "/users/" + userId;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(adminToken);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    userUrl,
+                    HttpMethod.GET,
+                    request,
+                    new ParameterizedTypeReference<Map<String, Object>>() {
+                    });
+            return response.getBody();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get user from Keycloak: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Lấy nhiều users theo danh sách IDs
+     */
+    public List<Map<String, Object>> getUsersByIds(List<String> userIds) {
+        if (userIds == null || userIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Map<String, Object>> users = new ArrayList<>();
+        for (String userId : userIds) {
+            try {
+                Map<String, Object> user = getUserById(userId);
+                if (user != null) {
+                    users.add(user);
+                }
+            } catch (Exception e) {
+                // Skip users that cannot be found
+            }
+        }
+        return users;
     }
 }

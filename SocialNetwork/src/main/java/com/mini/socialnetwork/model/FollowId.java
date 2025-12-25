@@ -3,11 +3,15 @@ package com.mini.socialnetwork.model;
 import java.io.Serializable;
 import java.util.Objects;
 
-import javax.persistence.Embeddable;
+import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Composite Key cho Follow entity.
+ * Sử dụng String để lưu Keycloak User ID (UUID dạng String)
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,8 +19,8 @@ import lombok.NoArgsConstructor;
 public class FollowId implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Long followerId;
-    private Long followingId;
+    private String followerId; // Keycloak user ID của người follow
+    private String followingId; // Keycloak user ID của người được follow
 
     @Override
     public boolean equals(Object o) {

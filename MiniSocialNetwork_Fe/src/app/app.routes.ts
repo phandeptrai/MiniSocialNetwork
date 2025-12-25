@@ -12,6 +12,7 @@ import { MainLayoutComponent } from './shared/components/layout/main-layout.comp
 import { FeedPageComponent } from './features/feed/feed-page.component';
 import { ChatPage } from './features/chat/pages/chat-page/chat-page';
 import { ProfilePageComponent } from './features/profile/pages/profile-page/profile-page.component';
+import { PeoplePageComponent } from './features/people/people-page.component';
 import { FollowPageComponent } from './pages/follow/follow.page';
 
 export const routes: Routes = [
@@ -41,7 +42,7 @@ export const routes: Routes = [
       },
       {
         path: 'people',
-        component: FeedPageComponent, // TODO: Replace with PeopleComponent
+        component: PeoplePageComponent,
       },
       {
         path: 'notifications',

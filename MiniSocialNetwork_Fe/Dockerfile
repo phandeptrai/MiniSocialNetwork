@@ -25,4 +25,3 @@ ENV PORT=4200
 EXPOSE 4200
 
 CMD ["node","dist/MiniSocialNetwork_Fe/server/server.mjs"]
-

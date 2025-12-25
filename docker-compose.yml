@@ -96,10 +96,6 @@ services:
     container_name: sc_frontend
     ports:
       - "${FRONTEND_PORT:-4200}:4200"
-    environment:
-      - PORT=4200
-      - API_URL=http://backend:8080
-      - KEYCLOAK_URL=http://keycloak:8080
     depends_on:
       - backend
     restart: unless-stopped

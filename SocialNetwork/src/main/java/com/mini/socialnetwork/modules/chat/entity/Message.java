@@ -26,8 +26,9 @@ import java.util.List;
  *
  * <h2>Quan hệ:</h2>
  * <ul>
- *   <li>Conversation: Many-to-One qua conversationId (không dùng FK entity để tối ưu)</li>
- *   <li>Attachment: One-to-Many với cascade ALL và orphanRemoval</li>
+ * <li>Conversation: Many-to-One qua conversationId (không dùng FK entity để tối
+ * ưu)</li>
+ * <li>Attachment: One-to-Many với cascade ALL và orphanRemoval</li>
  * </ul>
  *
  * <h2>Serialization:</h2>
@@ -61,13 +62,13 @@ public class Message {
      * Sử dụng ID thay vì entity reference để tối ưu query.
      * </p>
      */
-    private Long conversationId; 
+    private Long conversationId;
 
     /**
      * ID của người gửi tin nhắn (từ Keycloak).
      */
     private String senderId;
-    
+
     /**
      * Nội dung văn bản của tin nhắn.
      * <p>
@@ -124,15 +125,15 @@ public class Message {
     /**
      * Enum định nghĩa các loại tin nhắn.
      */
-    public enum MessageType { 
+    public enum MessageType {
         /** Tin nhắn văn bản thuần */
-        TEXT, 
+        TEXT,
         /** Tin nhắn chứa hình ảnh */
-        IMAGE, 
+        IMAGE,
         /** Tin nhắn chứa file (không phải ảnh) */
-        FILE, 
+        FILE,
         /** Tin nhắn có file đính kèm (chung) */
-        ATTACHMENT 
+        ATTACHMENT
     }
 
     /**

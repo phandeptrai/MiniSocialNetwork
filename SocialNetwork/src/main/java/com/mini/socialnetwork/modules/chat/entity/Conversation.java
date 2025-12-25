@@ -21,15 +21,18 @@ import java.util.Set;
  *
  * <h2>Denormalization:</h2>
  * <p>
- * Các trường lastMessageContent, lastMessageSenderId, lastMessageType được lưu trực tiếp
+ * Các trường lastMessageContent, lastMessageSenderId, lastMessageType được lưu
+ * trực tiếp
  * trong Conversation để tối ưu hiệu suất khi hiển thị danh sách cuộc hội thoại
  * mà không cần JOIN với bảng messages.
  * </p>
  *
  * <h2>Quan hệ:</h2>
  * <ul>
- *   <li>participantIds: Many-to-Many với User (lưu qua bảng conversation_participants)</li>
- *   <li>Message: One-to-Many (message có conversationId reference đến conversation)</li>
+ * <li>participantIds: Many-to-Many với User (lưu qua bảng
+ * conversation_participants)</li>
+ * <li>Message: One-to-Many (message có conversationId reference đến
+ * conversation)</li>
  * </ul>
  *
  * @author MiniSocialNetwork Team
@@ -49,7 +52,7 @@ public class Conversation {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; 
+    private Long id;
 
     /**
      * Tên cuộc hội thoại.
@@ -122,7 +125,7 @@ public class Conversation {
      * </p>
      */
     private String lastMessageSenderId;
-    
+
     /**
      * Loại tin nhắn cuối cùng (denormalized).
      * <p>
@@ -137,10 +140,8 @@ public class Conversation {
      */
     public enum ConversationType {
         /** Cuộc hội thoại 1-1 giữa hai người */
-        ONE_TO_ONE, 
+        ONE_TO_ONE,
         /** Cuộc hội thoại nhóm nhiều người */
         GROUP
     }
 }
-
-
