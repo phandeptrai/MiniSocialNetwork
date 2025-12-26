@@ -197,6 +197,57 @@ export class ChatStateService {
   setPendingRecipient(recipient: PendingRecipient | null): void {
     this.pendingRecipient$.next(recipient);
   }
+
+  // === UNREAD CONVERSATIONS STATE ===
+  // Theo dõi các conversation có tin nhắn chưa đọc
+  private readonly unreadConversationIds$ = new BehaviorSubject<Set<string>>(new Set());
+
+  /**
+   * Lấy observable cho Set các conversation IDs có tin nhắn chưa đọc.
+   */
+  getUnreadConversationIds(): Observable<Set<string>> {
+    return this.unreadConversationIds$.asObservable();
+  }
+
+  /**
+   * Kiểm tra xem một conversation có tin nhắn chưa đọc không.
+   */
+  isConversationUnread(conversationId: string): boolean {
+    return this.unreadConversationIds$.getValue().has(conversationId);
+  }
+
+  /**
+   * Đánh dấu một conversation có tin nhắn mới (unread).
+   */
+  markConversationUnread(conversationId: string): void {
+    const current = this.unreadConversationIds$.getValue();
+    if (!current.has(conversationId)) {
+      const updated = new Set(current);
+      updated.add(conversationId);
+      this.unreadConversationIds$.next(updated);
+      console.log('Marked conversation as unread:', conversationId);
+    }
+  }
+
+  /**
+   * Đánh dấu một conversation đã đọc (remove from unread set).
+   */
+  markConversationRead(conversationId: string): void {
+    const current = this.unreadConversationIds$.getValue();
+    if (current.has(conversationId)) {
+      const updated = new Set(current);
+      updated.delete(conversationId);
+      this.unreadConversationIds$.next(updated);
+      console.log('Marked conversation as read:', conversationId);
+    }
+  }
+
+  /**
+   * Reset tất cả unread conversations.
+   */
+  clearAllUnread(): void {
+    this.unreadConversationIds$.next(new Set());
+  }
 }
 
 // Interface mới cho Pending Recipient

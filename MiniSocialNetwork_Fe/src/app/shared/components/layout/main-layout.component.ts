@@ -1,12 +1,16 @@
-import { Component, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, inject, ViewChild, ElementRef, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { KeycloakApiService } from '../../../features/auth/services/keycloak-api.service';
+import { NotificationSocketService } from '../../../features/notifications/services/notification-socket.service';
+import { NotificationStateService } from '../../../features/notifications/services/notification-state.service';
+import { NotificationToastComponent } from '../notification-toast/notification-toast.component';
 
 @Component({
   selector: 'app-main-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NotificationToastComponent],
   template: `
     <div class="layout-container">
       <!-- Sidebar -->
@@ -40,8 +44,11 @@ import { KeycloakApiService } from '../../../features/auth/services/keycloak-api
             <span class="nav-icon">💬</span>
             <span class="nav-text">Messages</span>
           </a>
-          <a routerLink="/notifications" routerLinkActive="active" class="nav-item" (click)="onNavClick('/notifications')">
-            <span class="nav-icon">🔔</span>
+          <a routerLink="/notifications" routerLinkActive="active" class="nav-item notification-nav" (click)="onNotificationsClick()">
+            <span class="nav-icon-wrapper">
+              <span class="nav-icon">🔔</span>
+              <span class="notification-badge" *ngIf="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+            </span>
             <span class="nav-text">Notifications</span>
           </a>
           <a routerLink="/profile" routerLinkActive="active" class="nav-item" (click)="onNavClick('/profile')">
@@ -64,6 +71,9 @@ import { KeycloakApiService } from '../../../features/auth/services/keycloak-api
         <router-outlet></router-outlet>
       </main>
     </div>
+
+    <!-- Notification Toast -->
+    <app-notification-toast></app-notification-toast>
   `,
   styles: [`
     .layout-container {
@@ -172,6 +182,36 @@ import { KeycloakApiService } from '../../../features/auth/services/keycloak-api
       font-size: 20px;
       width: 24px;
       text-align: center;
+    }
+
+    /* Notification Badge */
+    .nav-icon-wrapper {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -8px;
+      right: -10px;
+      background: #e0245e;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      min-width: 18px;
+      height: 18px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      border: 2px solid #ffffff;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
     }
 
     /* Footer */
@@ -290,14 +330,19 @@ import { KeycloakApiService } from '../../../features/auth/services/keycloak-api
     }
   `]
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit, OnDestroy {
   private keycloakApi = inject(KeycloakApiService);
   private router = inject(Router);
+  private notificationSocket = inject(NotificationSocketService);
+  private notificationState = inject(NotificationStateService);
 
   @ViewChild('mainContent') mainContent!: ElementRef<HTMLElement>;
 
   userName = 'John Doe';
   userHandle = 'johndoe';
+  unreadCount = 0;
+
+  private unreadSub?: Subscription;
 
   ngOnInit(): void {
     // Lấy thông tin user từ token
@@ -309,6 +354,20 @@ export class MainLayoutComponent {
         this.userHandle = claims.preferred_username || 'user';
       }
     }
+
+    // Kết nối WebSocket cho notifications
+    this.notificationSocket.connect();
+
+    // Subscribe vào unread count
+    this.unreadSub = this.notificationState.getUnreadCount().subscribe(count => {
+      this.unreadCount = count;
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.unreadSub?.unsubscribe();
+    this.notificationSocket.disconnect();
+    this.notificationState.reset();
   }
 
   onNavClick(route: string): void {
@@ -316,6 +375,14 @@ export class MainLayoutComponent {
     if (this.router.url === route) {
       this.scrollToTop();
     }
+  }
+
+  onNotificationsClick(): void {
+    // Mark all as read khi click vào notifications
+    if (this.unreadCount > 0) {
+      // Không tự động mark all, để user tự quyết định
+    }
+    this.onNavClick('/notifications');
   }
 
   private scrollToTop(): void {
@@ -328,6 +395,8 @@ export class MainLayoutComponent {
   }
 
   signOut(): void {
+    this.notificationSocket.disconnect();
+    this.notificationState.reset();
     this.keycloakApi.logout();
     this.router.navigate(['/login']);
   }

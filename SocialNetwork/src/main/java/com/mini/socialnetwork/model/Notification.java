@@ -30,11 +30,17 @@ public class Notification {
 
     private UUID senderId; // người gây ra hành động
 
-    private Type type; // LIKE, COMMENT, FOLLOW
+    private String senderName; // tên người gửi (để hiển thị notification)
 
-    private UUID postId; // null nếu FOLLOW
+    private String senderAvatarUrl; // avatar người gửi
 
-    private String message; // "A đã thích bài viết của bạn"
+    private Type type; // LIKE, COMMENT, FOLLOW, MESSAGE
+
+    private UUID postId; // null nếu FOLLOW hoặc MESSAGE
+
+    private String conversationId; // ID cuộc hội thoại (chỉ dùng cho MESSAGE)
+
+    private String message; // "A đã thích bài viết của bạn" hoặc preview tin nhắn
 
     private boolean isRead;
 
@@ -43,6 +49,7 @@ public class Notification {
     public enum Type {
         LIKE,
         COMMENT,
-        FOLLOW
+        FOLLOW,
+        MESSAGE
     }
 }

@@ -25,22 +25,18 @@
 
   <!-- Conversation items -->
   <div class="conversations-wrapper" #conversationsWrapper (scroll)="onScroll($event)">
-    <div 
-      class="conversation-item"
-      *ngFor="let conv of conversations$ | async"
-      [class.active]="(selectedConversation$ | async)?.id === conv.id"
+    <div class="conversation-item" *ngFor="let conv of conversations$ | async"
+      [class.active]="(selectedConversation$ | async)?.id === conv.id" [class.unread]="hasUnread(conv.id)"
       (click)="selectConversation(conv)">
-      
+
       <div class="avatar">
-        <img 
-          *ngIf="conv.displayAvatarUrl" 
-          [src]="conv.displayAvatarUrl" 
-          [alt]="conv.displayName"
-          class="avatar-img" />
+        <img *ngIf="conv.displayAvatarUrl" [src]="conv.displayAvatarUrl" [alt]="conv.displayName" class="avatar-img" />
         <div *ngIf="!conv.displayAvatarUrl" class="avatar-placeholder">
           {{ conv.displayName?.charAt(0)?.toUpperCase() || 'U' }}
         </div>
         <span class="online-indicator" *ngIf="conv.type === 'ONE_TO_ONE'"></span>
+        <!-- Unread indicator (green dot) -->
+        <span class="unread-indicator" *ngIf="hasUnread(conv.id)"></span>
       </div>
 
       <div class="conversation-info">
@@ -59,7 +55,8 @@
 
       <div class="conversation-badge" *ngIf="conv.type === 'GROUP'">
         <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14">
-          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 8c0-2.67 5.33-4 6-4s6 1.33 6 4v1H6v-1z"/>
+          <path
+            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-6 8c0-2.67 5.33-4 6-4s6 1.33 6 4v1H6v-1z" />
         </svg>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { ChatStateService } from '../../services/chat-state.service';
 import { ChatApiService } from '../../services/chat-api.service';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../../core/services/auth';
+import { NotificationApiService } from '../../../notifications/services/notification-api.service';
 
 @Component({
   selector: 'app-component-list',
@@ -20,6 +21,7 @@ export class ComponentList implements OnInit, OnDestroy {
   conversations$: Observable<Conversation[]>;
   selectedConversation$: Observable<Conversation | null>;
   isLoading$: Observable<boolean>;
+  unreadConversationIds$: Observable<Set<string>>;
 
   private currentUser: User | null = null;
   private tokenSub?: Subscription;
@@ -30,7 +32,8 @@ export class ComponentList implements OnInit, OnDestroy {
   constructor(
     private chatState: ChatStateService,
     private chatApi: ChatApiService,
-    private authService: AuthService
+    private authService: AuthService,
+    private notificationApi: NotificationApiService
   ) {
     // Process conversations mỗi khi có dữ liệu mới từ state HOẶC user thay đổi
     this.conversations$ = combineLatest([
@@ -45,6 +48,7 @@ export class ComponentList implements OnInit, OnDestroy {
     );
     this.selectedConversation$ = this.chatState.getSelectedConversation();
     this.isLoading$ = this.chatState.isConversationsLoading();
+    this.unreadConversationIds$ = this.chatState.getUnreadConversationIds();
   }
 
   ngOnInit(): void {
@@ -85,6 +89,23 @@ export class ComponentList implements OnInit, OnDestroy {
 
   selectConversation(conversation: Conversation): void {
     this.chatState.selectConversation(conversation.id);
+
+    // Đánh dấu conversation đã đọc
+    this.chatState.markConversationRead(conversation.id);
+
+    // Gọi API để đánh dấu notifications của conversation này đã đọc
+    this.notificationApi.markConversationAsRead(conversation.id).subscribe({
+      next: () => console.log('Marked conversation notifications as read:', conversation.id),
+      error: (err) => console.error('Failed to mark conversation as read:', err)
+    });
+  }
+
+  /**
+   * Kiểm tra xem conversation có unread messages không.
+   * Được gọi từ template để hiển thị unread indicator.
+   */
+  hasUnread(conversationId: string): boolean {
+    return this.chatState.isConversationUnread(conversationId);
   }
 
   startNewConversation(): void {

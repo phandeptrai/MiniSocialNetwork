@@ -95,6 +95,20 @@ export class ChatSocketService {
                     message.conversationId,
                     message
                 );
+
+                // Đánh dấu conversation có tin nhắn mới nếu:
+                // 1. Tin nhắn từ người khác (không phải current user)
+                // 2. Conversation hiện tại không đang được chọn (user không đang xem)
+                const currentUser = this.chatState.getCurrentUserValue();
+                const selectedConvId = this.chatState.getSelectedConversationValue()?.id;
+
+                if (currentUser && message.senderId !== currentUser.id) {
+                    // Nếu user không đang xem conversation này -> mark unread
+                    if (selectedConvId !== message.conversationId) {
+                        this.chatState.markConversationUnread(message.conversationId);
+                        console.log('New message from other user, marking conversation as unread:', message.conversationId);
+                    }
+                }
             });
         };
 

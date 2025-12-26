@@ -14,6 +14,7 @@ import { ChatPage } from './features/chat/pages/chat-page/chat-page';
 import { ProfilePageComponent } from './features/profile/pages/profile-page/profile-page.component';
 import { PeoplePageComponent } from './features/people/people-page.component';
 import { FollowPageComponent } from './pages/follow/follow.page';
+import { NotificationsPageComponent } from './features/notifications/pages/notifications-page.component';
 
 export const routes: Routes = [
   // Auth routes (no sidebar)
@@ -46,7 +47,7 @@ export const routes: Routes = [
       },
       {
         path: 'notifications',
-        component: FeedPageComponent, // TODO: Replace with NotificationsComponent
+        component: NotificationsPageComponent,
       },
       {
         path: 'profile',
