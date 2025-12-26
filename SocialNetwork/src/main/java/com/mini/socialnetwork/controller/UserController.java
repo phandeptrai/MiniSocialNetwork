@@ -5,11 +5,15 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import com.mini.socialnetwork.dto.UpdateProfileRequest;
 import com.mini.socialnetwork.dto.UserProfileDto;
 import com.mini.socialnetwork.model.User;
 import com.mini.socialnetwork.repository.UserRepository;
+import com.mini.socialnetwork.service.UserProfileService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,6 +23,59 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserProfileService userProfileService;
+    private final com.mini.socialnetwork.modules.auth.service.KeycloakAdminService keycloakAdminService;
+
+    /**
+     * Get current user's profile
+     * GET /api/users/me
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUserProfile(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        String keycloakId = jwt.getSubject();
+        String username = jwt.getClaimAsString("preferred_username");
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+
+        if (username == null) {
+            return ResponseEntity.badRequest().body("Username not found in token");
+        }
+
+        User user = userProfileService.getOrCreateProfile(keycloakId, username, email, name);
+        return ResponseEntity.ok(user);
+    }
+
+    /**
+     * Update current user's profile
+     * PUT /api/users/me
+     */
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUserProfile(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody UpdateProfileRequest request) {
+        if (jwt == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        String keycloakId = jwt.getSubject();
+        String username = jwt.getClaimAsString("preferred_username");
+        String email = jwt.getClaimAsString("email");
+
+        if (username == null) {
+            return ResponseEntity.badRequest().body("Username not found in token");
+        }
+
+        try {
+            User updatedUser = userProfileService.updateProfile(keycloakId, username, email, request);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500).body("Error updating profile: " + e.getMessage());
+        }
+    }
 
     /**
      * Get all users (for debugging)
@@ -56,8 +113,6 @@ public class UserController {
         User savedUser = userRepository.save(testUser);
         return ResponseEntity.ok(savedUser);
     }
-
-    private final com.mini.socialnetwork.modules.auth.service.KeycloakAdminService keycloakAdminService;
 
     /**
      * Get user by ID (Fetched from Keycloak)
