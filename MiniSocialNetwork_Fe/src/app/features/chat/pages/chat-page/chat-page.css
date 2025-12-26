@@ -1,0 +1,136 @@
+/* ==================== */
+/* Chat Page - Main Layout */
+/* Light Theme - White & Blue */
+/* Fit screen without scroll */
+/* ==================== */
+
+:host {
+    display: block;
+    height: calc(100vh - 48px);
+    width: 100%;
+    background: #f5f7fa;
+    overflow: hidden;
+}
+
+.chat-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background: #f5f7fa;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* ==================== */
+/* Sidebar Styles - 30% width */
+/* ==================== */
+
+.chat-sidebar {
+    width: 30%;
+    min-width: 280px;
+    max-width: 400px;
+    background: #ffffff;
+    border-right: 1px solid #e8ecf0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #e8ecf0;
+    color: #14171a;
+    flex-shrink: 0;
+}
+
+.app-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.35rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.3px;
+    color: #14171a;
+}
+
+.app-icon {
+    width: 26px;
+    height: 26px;
+    color: #1da1f2;
+}
+
+/* Logout Button */
+.logout-btn {
+    background: transparent;
+    border: 1px solid #e8ecf0;
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    color: #657786;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-btn:hover {
+    background: #fce4ec;
+    color: #e0245e;
+    border-color: #e0245e;
+}
+
+.logout-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ==================== */
+/* Main Chat Area - 70% width */
+/* ==================== */
+
+.chat-main {
+    flex: 1;
+    width: 70%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #ffffff;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* ==================== */
+/* Responsive Design */
+/* ==================== */
+
+@media (max-width: 768px) {
+    :host {
+        height: 100vh;
+    }
+
+    .chat-sidebar {
+        position: absolute;
+        left: 0;
+        top: 0;
+        z-index: 100;
+        width: 100%;
+        max-width: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+    }
+
+    .chat-sidebar.open {
+        transform: translateX(0);
+    }
+
+    .chat-main {
+        width: 100%;
+    }
+}

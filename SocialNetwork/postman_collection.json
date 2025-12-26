@@ -1,0 +1,673 @@
+{
+    "info": {
+        "_postman_id": "social-network-api-collection",
+        "name": "SocialNetwork API",
+        "description": "API Collection for SocialNetwork - Posts & Comments CRUD",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080",
+            "type": "string"
+        },
+        {
+            "key": "userId",
+            "value": "00000000-0000-0000-0000-000000000001",
+            "type": "string"
+        },
+        {
+            "key": "postId",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "commentId",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "📝 Posts",
+            "item": [
+                {
+                    "name": "Create Post (Text Only)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.id) {",
+                                    "    pm.collectionVariables.set('postId', jsonData.id);",
+                                    "}",
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "authorId",
+                                    "value": "{{userId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "content",
+                                    "value": "This is my first post! 🎉",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/posts",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "posts"
+                            ]
+                        },
+                        "description": "Create a new post with text content only"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Post (With Images)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.id) {",
+                                    "    pm.collectionVariables.set('postId', jsonData.id);",
+                                    "}",
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "authorId",
+                                    "value": "{{userId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "content",
+                                    "value": "Check out these amazing photos! 📸",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "images",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Select up to 4 images (max 5MB each)"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/posts",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "posts"
+                            ]
+                        },
+                        "description": "Create a new post with images (select files in 'images' field)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Post by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/posts/{{postId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "posts",
+                                "{{postId}}"
+                            ]
+                        },
+                        "description": "Get a specific post by its ID"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Posts by Author (Paginated)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/posts/author/{{userId}}?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "posts",
+                                "author",
+                                "{{userId}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Get all posts from a specific author with pagination"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Feed (Following Posts)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/posts/feed?userId={{userId}}&page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "posts",
+                                "feed"
+                            ],
+                            "query": [
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Get feed posts from users that the current user is following"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Toggle Like Post",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/posts/{{postId}}/like?userId={{userId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "posts",
+                                "{{postId}}",
+                                "like"
+                            ],
+                            "query": [
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}"
+                                }
+                            ]
+                        },
+                        "description": "Toggle like/unlike on a post"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Post",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/posts/{{postId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "posts",
+                                "{{postId}}"
+                            ]
+                        },
+                        "description": "Soft delete a post"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Post CRUD operations"
+        },
+        {
+            "name": "💬 Comments",
+            "item": [
+                {
+                    "name": "Create Comment (Text Only)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.id) {",
+                                    "    pm.collectionVariables.set('commentId', jsonData.id);",
+                                    "}",
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "postId",
+                                    "value": "{{postId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "content",
+                                    "value": "This is a great post! 👍",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments"
+                            ]
+                        },
+                        "description": "Create a comment with text content only"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Comment (With Image)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.id) {",
+                                    "    pm.collectionVariables.set('commentId', jsonData.id);",
+                                    "}",
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "postId",
+                                    "value": "{{postId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "content",
+                                    "value": "Check out this reaction image! 😂",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Select 1 image (max 5MB)"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments"
+                            ]
+                        },
+                        "description": "Create a comment with an image (select file in 'image' field)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Create Comment (Image Only)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "if (jsonData.id) {",
+                                    "    pm.collectionVariables.set('commentId', jsonData.id);",
+                                    "}",
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "postId",
+                                    "value": "{{postId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Select 1 image (max 5MB)"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments"
+                            ]
+                        },
+                        "description": "Create a comment with only an image (no text)"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Comment by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments/{{commentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments",
+                                "{{commentId}}"
+                            ]
+                        },
+                        "description": "Get a specific comment by its ID"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Comments by Post (Paginated)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments/post/{{postId}}?page=0&size=10",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments",
+                                "post",
+                                "{{postId}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        },
+                        "description": "Get all comments for a post with pagination"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Comment Count for Post",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments/count/{{postId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments",
+                                "count",
+                                "{{postId}}"
+                            ]
+                        },
+                        "description": "Get the total number of comments for a post"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Comment (Text Only)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "content",
+                                    "value": "Updated comment content! ✏️",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments/{{commentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments",
+                                "{{commentId}}"
+                            ]
+                        },
+                        "description": "Update comment text content"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Comment (Replace Image)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "content",
+                                    "value": "Updated with new image!",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "image",
+                                    "type": "file",
+                                    "src": [],
+                                    "description": "Select new image (max 5MB)"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments/{{commentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments",
+                                "{{commentId}}"
+                            ]
+                        },
+                        "description": "Update comment and replace image"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Comment (Remove Image)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "content",
+                                    "value": "Removed the image from this comment",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "removeImage",
+                                    "value": "true",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments/{{commentId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments",
+                                "{{commentId}}"
+                            ]
+                        },
+                        "description": "Update comment and remove existing image"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Delete Comment",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/comments/{{commentId}}?userId={{userId}}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "comments",
+                                "{{commentId}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "userId",
+                                    "value": "{{userId}}"
+                                }
+                            ]
+                        },
+                        "description": "Soft delete a comment (only owner can delete)"
+                    },
+                    "response": []
+                }
+            ],
+            "description": "Comment CRUD operations with image support"
+        }
+    ]
+}

@@ -1,0 +1,38 @@
+<div class="post-list-container">
+  <!-- Loading state -->
+  <div *ngIf="isLoading()" class="loading">
+    <div class="spinner"></div>
+    <p>Đang tải bài viết...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="errorMessage() as error" class="error-message">
+    <p>{{ error }}</p>
+    <button (click)="loadPosts()" class="retry-btn">Thử lại</button>
+  </div>
+
+  <!-- Posts list -->
+  <div *ngIf="!isLoading() && !errorMessage()" class="posts-wrapper">
+    <app-post-card *ngFor="let post of postsVm()" [post]="post" (like)="onLike(post)"
+      (openComments)="openCommentPopup(post)">
+    </app-post-card>
+
+    <!-- Empty state -->
+    <div *ngIf="postsVm().length === 0" class="empty-state">
+      <p>Chưa có bài viết nào.</p>
+      <p class="hint">Hãy là người đầu tiên chia sẻ!</p>
+    </div>
+
+    <!-- Loading more indicator -->
+    <div *ngIf="isLoadingMore()" class="loading-more">
+      <div class="spinner-small"></div>
+      <span>Đang tải thêm...</span>
+    </div>
+  </div>
+</div>
+
+<!-- Comment Popup -->
+<app-comment-popup *ngIf="selectedPostForComments() as selectedPost" [post]="selectedPost"
+  [currentUserId]="currentUserId" [currentUserName]="currentUserName" (close)="closeCommentPopup()"
+  (commentAdded)="onCommentAdded()">
+</app-comment-popup>

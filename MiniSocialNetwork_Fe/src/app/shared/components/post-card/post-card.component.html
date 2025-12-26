@@ -1,0 +1,81 @@
+<article class="post-card" *ngIf="post">
+  <!-- Header -->
+  <header class="post-header">
+    <div class="avatar">
+      <img *ngIf="post.authorAvatarUrl; else defaultAvatar" [src]="post.authorAvatarUrl!" alt="avatar" />
+      <ng-template #defaultAvatar>
+        <div class="avatar-placeholder"></div>
+      </ng-template>
+    </div>
+    <div class="meta">
+      <div class="author">{{ post.authorName }}</div>
+      <div class="time">{{ post.createdAt | date: 'shortTime' }}</div>
+    </div>
+  </header>
+
+  <!-- Content text -->
+  <p class="post-text" *ngIf="post.content">
+    {{ post.content }}
+  </p>
+
+  <!-- Images layout -->
+  <div class="post-images" [ngSwitch]="imageCount()">
+    <!-- 0 images: nothing -->
+
+    <!-- 1 image -->
+    <ng-container *ngSwitchCase="1">
+      <div class="layout-1">
+        <img [src]="post.imageUrls[0]" alt="post image" />
+      </div>
+    </ng-container>
+
+    <!-- 2 images -->
+    <ng-container *ngSwitchCase="2">
+      <div class="layout-2">
+        <img *ngFor="let url of post.imageUrls" [src]="url" alt="post image" />
+      </div>
+    </ng-container>
+
+    <!-- 3 images -->
+    <ng-container *ngSwitchCase="3">
+      <div class="layout-3">
+        <div class="main">
+          <img [src]="post.imageUrls[0]" alt="post image" />
+        </div>
+        <div class="side">
+          <img [src]="post.imageUrls[1]" alt="post image" />
+          <img [src]="post.imageUrls[2]" alt="post image" />
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- 4 images -->
+    <ng-container *ngSwitchCase="4">
+      <div class="layout-4">
+        <img *ngFor="let url of post.imageUrls" [src]="url" alt="post image" />
+      </div>
+    </ng-container>
+  </div>
+
+  <!-- Actions: like & comment counts -->
+  <div class="post-actions">
+    <button type="button" class="icon-button" [class.active]="internalIsLiked()"
+      (click)="$event.preventDefault(); $event.stopPropagation(); onToggleLike()">
+      ❤️
+    </button>
+    <span class="count">{{ internalLikeCount() }}</span>
+
+    <button type="button" class="icon-button" (click)="onOpenComments()">
+      💬
+    </button>
+    <span class="count">{{ internalCommentCount() }}</span>
+  </div>
+
+  <!-- Comment bar (click to open popup) -->
+  <div class="comment-bar" (click)="onOpenComments()">
+    <div class="comment-bar-avatar"></div>
+    <div class="comment-bar-input">
+      <span class="comment-placeholder">Write a comment...</span>
+    </div>
+  </div>
+</article>

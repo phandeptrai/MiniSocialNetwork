@@ -1,0 +1,84 @@
+.follow-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.avatar {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 50px;
+}
+
+.username {
+    font-size: 24px;
+    color: #1a1a2e;
+    margin: 0 0 10px;
+    font-weight: 700;
+}
+
+.bio {
+    color: #666;
+    font-size: 14px;
+    margin: 0 0 25px;
+    line-height: 1.5;
+}
+
+.follow-action {
+    display: flex;
+    justify-content: center;
+}
+
+.info-box {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 25px;
+    margin-top: 30px;
+    color: white;
+}
+
+.info-box h3 {
+    margin: 0 0 15px;
+    font-size: 18px;
+}
+
+.info-box ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.info-box li {
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-box li:last-child {
+    border-bottom: none;
+}
+
+.info-box strong {
+    color: #ffd700;
+}

@@ -1,0 +1,185 @@
+<div class="people-page">
+    <!-- Error Message -->
+    @if (error()) {
+    <div class="error-message">
+        <p>⚠️ {{ error() }}</p>
+        <button (click)="refresh()">Retry</button>
+    </div>
+    }
+
+    <!-- Suggested for you Section (First) -->
+    <section class="user-section">
+        <div class="section-header">
+            <h2><span class="icon">✨</span> Suggested for you</h2>
+            @if (suggestions().length > 0) {
+            <div class="scroll-buttons">
+                <button class="scroll-btn" (click)="scrollContainer('suggestions', -320)">‹</button>
+                <button class="scroll-btn" (click)="scrollContainer('suggestions', 320)">›</button>
+            </div>
+            }
+        </div>
+        @if (suggestions().length === 0) {
+        <div class="empty-state">
+            <p>🔍 Không có người dùng gợi ý. Bạn đã follow tất cả mọi người!</p>
+        </div>
+        } @else {
+        <div class="cards-container" id="suggestions-container">
+            @for (user of suggestions(); track user.id) {
+            <div class="user-card">
+                <div class="card-header">
+                    <img [src]="user.avatarUrl" [alt]="user.name" class="avatar" />
+                    @if (user.followsYou) {
+                    <span class="follows-you-badge">FOLLOWS YOU</span>
+                    }
+                </div>
+                <div class="card-body">
+                    <h3 class="name">{{ user.name }}</h3>
+                    <span class="username">{{ user.username }}</span>
+                    <p class="bio">{{ user.bio }}</p>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-value">{{ user.followersCount }}</span>
+                            <span class="stat-label">FOLLOWERS</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">{{ user.followingCount }}</span>
+                            <span class="stat-label">FOLLOWING</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="action-buttons">
+                        <button class="follow-btn" [class.following]="user.isFollowing"
+                            (click)="toggleFollow(user, 'suggestions')" [disabled]="isLoading()">
+                            <span class="btn-icon">{{ user.isFollowing ? '✓' : '+' }}</span>
+                            {{ user.isFollowing ? 'Unfollow' : 'Follow' }}
+                        </button>
+                        <button class="message-btn" (click)="openChat(user)">
+                            <span class="btn-icon">💬</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </section>
+
+
+    <!-- Following Section (Second) -->
+    <section class="user-section">
+        <div class="section-header">
+            <h2><span class="icon">👤</span> Following ({{ following().length }})</h2>
+            <div class="scroll-buttons">
+                <button class="scroll-btn" (click)="scrollContainer('following', -320)">‹</button>
+                <button class="scroll-btn" (click)="scrollContainer('following', 320)">›</button>
+            </div>
+        </div>
+        @if (isFollowingLoading()) {
+        <div class="loading-state">
+            <p>Loading following...</p>
+        </div>
+        } @else if (following().length === 0) {
+        <div class="empty-state">
+            <p>You are not following anyone yet.</p>
+        </div>
+        } @else {
+        <div class="cards-container" id="following-container">
+            @for (user of following(); track user.id) {
+            <div class="user-card">
+                <div class="card-header">
+                    <img [src]="user.avatarUrl" [alt]="user.name" class="avatar" />
+                    @if (user.followsYou) {
+                    <span class="follows-you-badge">FOLLOWS YOU</span>
+                    }
+                </div>
+                <div class="card-body">
+                    <h3 class="name">{{ user.name }}</h3>
+                    <span class="username">{{ user.username }}</span>
+                    <p class="bio">{{ user.bio }}</p>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-value">{{ user.followersCount }}</span>
+                            <span class="stat-label">FOLLOWERS</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">{{ user.followingCount }}</span>
+                            <span class="stat-label">FOLLOWING</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="action-buttons">
+                        <button class="follow-btn following" (click)="toggleFollow(user, 'following')"
+                            [disabled]="isLoading()">
+                            <span class="btn-icon">✓</span>
+                            Unfollow
+                        </button>
+                        <button class="message-btn" (click)="openChat(user)">
+                            <span class="btn-icon">💬</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </section>
+
+    <!-- Your Followers Section (Third) -->
+    <section class="user-section">
+        <div class="section-header">
+            <h2><span class="icon">👥</span> Your Followers ({{ followers().length }})</h2>
+            <div class="scroll-buttons">
+                <button class="scroll-btn" (click)="scrollContainer('followers', -320)">‹</button>
+                <button class="scroll-btn" (click)="scrollContainer('followers', 320)">›</button>
+            </div>
+        </div>
+        @if (isFollowersLoading()) {
+        <div class="loading-state">
+            <p>Loading followers...</p>
+        </div>
+        } @else if (followers().length === 0) {
+        <div class="empty-state">
+            <p>You don't have any followers yet.</p>
+        </div>
+        } @else {
+        <div class="cards-container" id="followers-container">
+            @for (user of followers(); track user.id) {
+            <div class="user-card">
+                <div class="card-header">
+                    <img [src]="user.avatarUrl" [alt]="user.name" class="avatar" />
+                </div>
+                <div class="card-body">
+                    <h3 class="name">{{ user.name }}</h3>
+                    <span class="username">{{ user.username }}</span>
+                    <p class="bio">{{ user.bio }}</p>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-value">{{ user.followersCount }}</span>
+                            <span class="stat-label">FOLLOWERS</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">{{ user.followingCount }}</span>
+                            <span class="stat-label">FOLLOWING</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="action-buttons">
+                        <button class="follow-btn" [class.following]="user.isFollowing"
+                            (click)="toggleFollow(user, 'followers')" [disabled]="isLoading()">
+                            <span class="btn-icon">{{ user.isFollowing ? '✓' : '+' }}</span>
+                            {{ user.isFollowing ? 'Unfollow' : 'Follow Back' }}
+                        </button>
+                        <button class="message-btn" (click)="openChat(user)">
+                            <span class="btn-icon">💬</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </section>
+</div>

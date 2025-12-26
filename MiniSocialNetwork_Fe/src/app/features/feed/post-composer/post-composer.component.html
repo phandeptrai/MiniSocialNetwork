@@ -1,0 +1,54 @@
+<div class="post-composer">
+  <div class="avatar">
+    <img
+      *ngIf="currentUserAvatarUrl; else defaultAvatar"
+      [src]="currentUserAvatarUrl"
+      alt="avatar"
+    />
+    <ng-template #defaultAvatar>
+      <div class="avatar-placeholder"></div>
+    </ng-template>
+  </div>
+
+  <div class="composer-main">
+    <div class="input-wrapper">
+      <textarea
+        rows="3"
+        placeholder="What's happening, {{ currentUserName }}?"
+        [formControl]="contentCtrl"
+        #textareaInput
+      ></textarea>
+    </div>
+
+    <div class="actions">
+      <div class="left-actions">
+        <label class="icon-button">
+          <input type="file" multiple accept="image/*" (change)="onFileChange($event)" hidden />
+          <i class="fa-regular fa-image"></i>
+        </label>
+      </div>
+
+      <button
+        class="post-button"
+        type="button"
+        (click)="submit()"
+        [disabled]="!canSubmit()"
+      >
+        {{ isSubmitting() ? 'Posting...' : 'Post' }}
+      </button>
+    </div>
+
+    <div class="previews" *ngIf="imagePreviews.length > 0">
+      <div class="preview-item" *ngFor="let src of imagePreviews; index as i">
+        <img [src]="src" alt="preview" />
+        <button type="button" class="remove-btn" (click)="removeImage(i)">✕</button>
+      </div>
+    </div>
+
+    <div class="error" *ngIf="errorMessage() as msg">
+      {{ msg }}
+    </div>
+  </div>
+</div>
+
+
