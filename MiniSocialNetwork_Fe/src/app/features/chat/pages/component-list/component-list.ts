@@ -24,7 +24,7 @@ export class ComponentList implements OnInit, OnDestroy {
 
   private currentUser: User | null = null;
   private tokenSub?: Subscription;
-  
+
 
   constructor(
     private chatState: ChatStateService,
@@ -104,7 +104,7 @@ export class ComponentList implements OnInit, OnDestroy {
     console.log("Starting a new conversation...");
   }
 
-  
+
 
   // Hàm này tìm tên và avatar của người còn lại trong chat 1-1
   private processConversations(conversations: Conversation[]): Conversation[] {

@@ -24,11 +24,14 @@ import com.mini.socialnetwork.model.Post;
 import com.mini.socialnetwork.repository.FollowRepository;
 import com.mini.socialnetwork.repository.PostRepository;
 import com.mini.socialnetwork.repository.UserRepository;
+import com.mini.socialnetwork.repository.CommentRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostService {
 
     private static final long MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
@@ -36,7 +39,8 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-    private final FollowRepository followRepository;
+    private final FollowRepository followRepository; // Keep this
+    private final CommentRepository commentRepository; // Add this
     private final Cloudinary cloudinary;
 
     public Post createPost(String authorId, String content, List<MultipartFile> images) throws IOException {
@@ -170,20 +174,44 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    public Post deletePost(String postId, String userId) {
-        UUID postObjectId = UUID.fromString(postId);
-        UUID userObjectId = UUID.fromString(userId);
+    @org.springframework.transaction.annotation.Transactional
+    public com.mini.socialnetwork.dto.PostResponse deletePost(String postId, String userId) {
+        log.info("Deleting post {} by user {}", postId, userId);
+        try {
+            UUID postObjectId = UUID.fromString(postId);
+            UUID userObjectId = UUID.fromString(userId);
 
-        Post post = postRepository.findById(postObjectId)
-                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+            Post post = postRepository.findById(postObjectId)
+                    .orElseThrow(() -> new IllegalArgumentException("Post not found"));
 
-        // Check ownership
-        if (!post.getAuthorId().equals(userObjectId)) {
-            throw new IllegalArgumentException("You can only delete your own posts");
+            // Check ownership
+            if (!post.getAuthorId().equals(userObjectId)) {
+                throw new IllegalArgumentException("You can only delete your own posts");
+            }
+
+            // Create response before deletion
+            log.info("Creating response object");
+            if (post.getLikes() != null) {
+                post.getLikes().size();
+            }
+            com.mini.socialnetwork.dto.PostResponse response = com.mini.socialnetwork.dto.PostResponse.from(post);
+
+            // Delete all comments
+            log.info("Deleting comments for post {}", postId);
+            commentRepository.deleteByPostId(postObjectId);
+
+            // Delete the post
+            log.info("Deleting post entity {}", postId);
+            postRepository.delete(post);
+
+            log.info("Flushing changes");
+            postRepository.flush();
+
+            log.info("Delete successful");
+            return response;
+        } catch (Exception e) {
+            log.error("Error deleting post: ", e);
+            throw e;
         }
-
-        post.setDeleted(true);
-        post.setUpdatedAt(Instant.now());
-        return postRepository.save(post);
     }
 }

@@ -1,6 +1,7 @@
 package com.mini.socialnetwork.dto;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,11 +29,13 @@ public record PostResponse(
                 int likeCount = post.getLikes() != null ? post.getLikes().size() : 0;
                 int commentCount = post.getCommentCount();
 
+                List<String> imageUrls = post.getImageUrls() != null ? new ArrayList<>(post.getImageUrls()) : null;
+
                 return new PostResponse(
                                 postId,
                                 author,
                                 post.getContent(),
-                                post.getImageUrls(),
+                                imageUrls,
                                 likeIds,
                                 likeCount,
                                 commentCount,
