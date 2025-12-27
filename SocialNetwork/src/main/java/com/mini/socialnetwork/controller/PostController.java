@@ -137,8 +137,8 @@ public class PostController {
             @PathVariable String id,
             @AuthenticationPrincipal Jwt jwt) {
         String userId = jwt.getSubject();
-        Post post = postService.deletePost(id, userId);
-        return ResponseEntity.ok(PostResponse.from(post));
+        PostResponse postResponse = postService.deletePost(id, userId);
+        return ResponseEntity.ok(postResponse);
     }
 
     @GetMapping("/feed")

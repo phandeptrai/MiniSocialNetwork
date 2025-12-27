@@ -19,4 +19,6 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
     // Find all comments by userId
     List<Comment> findByUserIdAndIsDeletedFalse(UUID userId);
+
+    void deleteByPostId(UUID postId);
 }
