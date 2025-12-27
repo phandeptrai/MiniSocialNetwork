@@ -12,6 +12,11 @@ import com.mini.socialnetwork.model.User;
 public interface UserRepository extends JpaRepository<User, UUID> {
 
     /**
+     * Find user by username
+     */
+    java.util.Optional<User> findByUsername(String username);
+
+    /**
      * Find suggested users: all active users except the current user and users
      * already being followed
      */

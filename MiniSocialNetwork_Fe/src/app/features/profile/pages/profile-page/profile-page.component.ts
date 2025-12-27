@@ -3,8 +3,11 @@ import { CommonModule } from '@angular/common';
 import { KeycloakApiService } from '../../../auth/services/keycloak-api.service';
 import { PostService, PostResponse } from '../../../../core/services/post.service';
 import { PostCardComponent } from '../../../../shared/components/post-card/post-card.component';
+import { UserService, UserProfile as DbUserProfile } from '../../../../core/services/user.service';
+import { EditProfilePopupComponent } from '../../components/edit-profile-popup/edit-profile-popup.component';
 
 interface UserProfile {
+    id: string;
     name: string;
     username: string;
     bio: string;
@@ -17,16 +20,21 @@ interface UserProfile {
 @Component({
     selector: 'app-profile-page',
     standalone: true,
-    imports: [CommonModule, PostCardComponent],
+    imports: [CommonModule, PostCardComponent, EditProfilePopupComponent],
     templateUrl: './profile-page.component.html',
     styleUrl: './profile-page.component.css',
 })
 export class ProfilePageComponent implements OnInit {
     private readonly keycloakApi = inject(KeycloakApiService);
     private readonly postService = inject(PostService);
+    private readonly userService = inject(UserService);
 
     readonly isLoading = signal(true);
+    readonly showEditPopup = signal(false);
+    readonly dbProfile = signal<DbUserProfile | null>(null);
+
     readonly userProfile = signal<UserProfile>({
+        id: '',
         name: 'User',
         username: 'user',
         bio: '',
@@ -45,19 +53,41 @@ export class ProfilePageComponent implements OnInit {
     }
 
     private loadUserProfile(): void {
+        // First get basic info from token
         const token = this.keycloakApi.getAccessToken();
         if (token) {
             const claims = this.keycloakApi.parseToken(token);
             if (claims) {
                 this.userId = claims.sub;
+                // Set initial values from token
                 this.userProfile.set({
+                    id: claims.sub,
                     name: claims.name || claims.preferred_username || 'User',
                     username: claims.preferred_username || 'user',
-                    bio: 'Tech enthusiast and coffee lover.',
+                    bio: '',
                     avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(claims.name || 'User')}&background=667eea&color=fff&size=128`,
                     postCount: 0,
-                    followerCount: 2,
-                    followingCount: 2,
+                    followerCount: 0,
+                    followingCount: 0,
+                });
+
+                // Then fetch profile from database (creates if not exists)
+                // This call is fire-and-forget, errors won't block the page
+                this.userService.getMyProfile().subscribe({
+                    next: (profile) => {
+                        console.log('📦 User profile from DB:', profile);
+                        this.dbProfile.set(profile);
+                        this.userProfile.update(p => ({
+                            ...p,
+                            name: profile.name || p.name,
+                            bio: profile.bio || '',
+                            avatarUrl: profile.avatarUrl || p.avatarUrl,
+                        }));
+                    },
+                    error: (err) => {
+                        // Don't redirect on error, just log it
+                        console.warn('⚠️ Could not load profile from DB (this is ok):', err.status);
+                    }
                 });
             }
         }
@@ -95,8 +125,23 @@ export class ProfilePageComponent implements OnInit {
     }
 
     onEditProfile(): void {
-        // TODO: Open edit profile modal
-        console.log('Edit profile clicked');
+        this.showEditPopup.set(true);
+    }
+
+    onCloseEditPopup(): void {
+        this.showEditPopup.set(false);
+    }
+
+    onProfileSaved(updatedProfile: DbUserProfile): void {
+        console.log('✅ Profile updated:', updatedProfile);
+        this.dbProfile.set(updatedProfile);
+        this.userProfile.update(p => ({
+            ...p,
+            name: updatedProfile.name || p.name,
+            bio: updatedProfile.bio || '',
+            avatarUrl: updatedProfile.avatarUrl || p.avatarUrl,
+        }));
+        this.showEditPopup.set(false);
     }
 
     onLike(post: PostResponse): void {
@@ -109,3 +154,4 @@ export class ProfilePageComponent implements OnInit {
         });
     }
 }
+
