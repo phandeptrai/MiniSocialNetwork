@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.mini.socialnetwork.model.Post;
+import com.mini.socialnetwork.repository.FollowRepository;
 import com.mini.socialnetwork.repository.PostRepository;
 import com.mini.socialnetwork.repository.UserRepository;
 
@@ -35,6 +36,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
     private final Cloudinary cloudinary;
 
     public Post createPost(String authorId, String content, List<MultipartFile> images) throws IOException {
@@ -98,17 +100,31 @@ public class PostService {
         return postRepository.findByAuthorId(objectId, pageable);
     }
 
+    /**
+     * Get posts from extended following network (F1 + F2 + F3) + own posts.
+     * Uses Recursive CTE with Depth-Limited Search algorithm.
+     * Complexity: O(k + k² + k³) where k = average follows per user.
+     */
     public Slice<Post> getPostsByFollowing(String userId, int page, int size) {
-        UUID userUuid = UUID.fromString(userId);
-        var user = userRepository.findById(userUuid)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        // Get extended following (F1 + F2 + F3) using Recursive CTE
+        List<String> extendedFollowingIds = followRepository.findExtendedFollowingIds(userId);
 
-        List<UUID> following = user.getFollowing();
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        if (following == null || following.isEmpty()) {
-            return postRepository.findByAuthorIdIn(List.of(UUID.randomUUID()), pageable).map(p -> p); // empty slice
+
+        // Create list of author IDs including current user's own posts
+        List<UUID> authorIds = new ArrayList<>();
+
+        // Always include current user's own posts
+        authorIds.add(UUID.fromString(userId));
+
+        // Add extended following if any
+        if (extendedFollowingIds != null && !extendedFollowingIds.isEmpty()) {
+            extendedFollowingIds.stream()
+                    .map(UUID::fromString)
+                    .forEach(authorIds::add);
         }
-        return postRepository.findByAuthorIdIn(following, pageable);
+
+        return postRepository.findByAuthorIdIn(authorIds, pageable);
     }
 
     public Post toggleLike(String postId, String userId) {
@@ -134,10 +150,37 @@ public class PostService {
         return post;
     }
 
-    public Post deletePost(String postId) {
+    /**
+     * Update post content. Only the post author can update.
+     */
+    public Post updatePost(String postId, String userId, String newContent) {
         UUID postObjectId = UUID.fromString(postId);
+        UUID userObjectId = UUID.fromString(userId);
+
         Post post = postRepository.findById(postObjectId)
                 .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        // Check ownership
+        if (!post.getAuthorId().equals(userObjectId)) {
+            throw new IllegalArgumentException("You can only edit your own posts");
+        }
+
+        post.setContent(newContent);
+        post.setUpdatedAt(Instant.now());
+        return postRepository.save(post);
+    }
+
+    public Post deletePost(String postId, String userId) {
+        UUID postObjectId = UUID.fromString(postId);
+        UUID userObjectId = UUID.fromString(userId);
+
+        Post post = postRepository.findById(postObjectId)
+                .orElseThrow(() -> new IllegalArgumentException("Post not found"));
+
+        // Check ownership
+        if (!post.getAuthorId().equals(userObjectId)) {
+            throw new IllegalArgumentException("You can only delete your own posts");
+        }
 
         post.setDeleted(true);
         post.setUpdatedAt(Instant.now());

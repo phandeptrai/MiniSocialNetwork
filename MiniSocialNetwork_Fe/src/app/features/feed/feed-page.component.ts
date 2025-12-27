@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit, inject } from '@angular/core';
 import { PostComposerComponent } from './post-composer/post-composer.component';
 import { PostListComponent } from './post-list/post-list.component';
 import { PostResponse } from '../../core/services/post.service';
+import { KeycloakApiService } from '../auth/services/keycloak-api.service';
 
 @Component({
   selector: 'app-feed-page',
@@ -38,12 +39,31 @@ import { PostResponse } from '../../core/services/post.service';
     `,
   ],
 })
-export class FeedPageComponent {
-  // Tạm hard-code user info cho demo; sau này lấy từ AuthService
-  readonly currentUserId = '550e8400-e29b-41d4-a716-446655440000';
-  readonly currentUserName = 'John Doe';
+export class FeedPageComponent implements OnInit {
+  private readonly keycloakApi = inject(KeycloakApiService);
+
+  currentUserId = '';
+  currentUserName = 'User';
 
   @ViewChild(PostListComponent) postListComponent!: PostListComponent;
+
+  ngOnInit(): void {
+    this.loadCurrentUserInfo();
+  }
+
+  /**
+   * Lấy thông tin user từ JWT token
+   */
+  private loadCurrentUserInfo(): void {
+    const token = this.keycloakApi.getAccessToken();
+    if (token) {
+      const claims = this.keycloakApi.parseToken(token);
+      if (claims) {
+        this.currentUserId = claims.sub || '';
+        this.currentUserName = claims.name || claims.preferred_username || 'User';
+      }
+    }
+  }
 
   /**
    * Xử lý khi tạo post thành công
@@ -55,5 +75,3 @@ export class FeedPageComponent {
     }
   }
 }
-
-

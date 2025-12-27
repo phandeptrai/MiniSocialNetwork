@@ -13,7 +13,8 @@
 
   <!-- Posts list -->
   <div *ngIf="!isLoading() && !errorMessage()" class="posts-wrapper">
-    <app-post-card *ngFor="let post of postsVm()" [post]="post" (like)="onLike(post)"
+    <app-post-card *ngFor="let post of postsVm(); trackBy: trackByPostId" [post]="post" [currentUserId]="currentUserId"
+      (like)="onLike(post)" (edit)="onEdit(post, $event)" (delete)="onDelete(post)"
       (openComments)="openCommentPopup(post)">
     </app-post-card>
 

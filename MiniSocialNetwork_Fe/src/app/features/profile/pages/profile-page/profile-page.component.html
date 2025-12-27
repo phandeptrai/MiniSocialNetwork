@@ -61,6 +61,7 @@
 
             <app-post-card *ngFor="let post of posts()" [post]="{
           id: post.id,
+          authorId: post.authorId,
           authorName: userProfile().name,
           createdAt: post.createdAt,
           content: post.content,

@@ -89,6 +89,18 @@ export class PostService {
     );
   }
 
+  /* ===== GET FEED (F1 + F2 + F3 extended following) ===== */
+  getFeed(page = 0, size = 10): Observable<PageResponse<PostResponse>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<PageResponse<PostResponse>>(
+      `${this.API_URL}/feed`,
+      { params }
+    );
+  }
+
   /* ===== GET POST BY ID ===== */
   getPostById(postId: string): Observable<PostResponse> {
     return this.http.get<PostResponse>(`${this.API_URL}/${postId}`);
@@ -113,18 +125,18 @@ export class PostService {
   }
 
   /* ===== UPDATE POST ===== */
-  updatePost(
-    postId: string,
-    content: string | null
-  ): Observable<PostResponse> {
-    return this.http.put<PostResponse>(`${this.API_URL}/${postId}`, {
-      content,
-    });
+  updatePost(postId: string, content: string): Observable<PostResponse> {
+    const params = new HttpParams().set('content', content);
+    return this.http.put<PostResponse>(
+      `${this.API_URL}/${postId}`,
+      null,
+      { params }
+    );
   }
 
   /* ===== DELETE POST ===== */
-  deletePost(postId: string): Observable<void> {
-    return this.http.delete<void>(`${this.API_URL}/${postId}`);
+  deletePost(postId: string): Observable<PostResponse> {
+    return this.http.delete<PostResponse>(`${this.API_URL}/${postId}`);
   }
 
   /* ===== TOGGLE LIKE / UNLIKE ===== */

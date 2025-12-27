@@ -76,7 +76,7 @@ export class PostListComponent implements OnInit {
   }
 
   /**
-   * Load danh sách posts từ API (trang đầu tiên)
+   * Load danh sách posts từ Feed API (F1 + F2 + F3 extended following)
    */
   loadPosts(): void {
     this.isLoading.set(true);
@@ -89,10 +89,10 @@ export class PostListComponent implements OnInit {
     }
 
     this.postService
-      .getPostsByAuthor(this.currentUserId, this.currentPage, this.pageSize)
+      .getFeed(this.currentPage, this.pageSize)
       .subscribe({
         next: (response) => {
-          console.log('📦 Initial posts loaded:', response);
+          console.log('📦 Initial feed posts loaded:', response);
           const posts = response.content || [];
           const viewModels = posts.map(post => this.mapToViewModel(post, this.currentUserName));
           this.posts.set(viewModels);
@@ -102,7 +102,7 @@ export class PostListComponent implements OnInit {
           this.isLoading.set(false);
         },
         error: (err) => {
-          console.error('❌ Error loading posts:', err);
+          console.error('❌ Error loading feed:', err);
           this.errorMessage.set('Không thể tải bài viết. Vui lòng thử lại.');
           this.isLoading.set(false);
         },
@@ -121,7 +121,7 @@ export class PostListComponent implements OnInit {
     console.log(`📄 Loading page ${this.currentPage}...`);
 
     this.postService
-      .getPostsByAuthor(this.currentUserId, this.currentPage, this.pageSize)
+      .getFeed(this.currentPage, this.pageSize)
       .subscribe({
         next: (response) => {
           console.log(`📦 Page ${this.currentPage} loaded:`, response.content?.length, 'posts');
@@ -189,6 +189,51 @@ export class PostListComponent implements OnInit {
   }
 
   /**
+   * Xử lý edit post
+   */
+  onEdit(post: PostViewModel, newContent: string): void {
+    this.postService.updatePost(post.id, newContent).subscribe({
+      next: (updatedPost) => {
+        this.posts.update((list) =>
+          list.map((p) =>
+            p.id === post.id
+              ? { ...p, content: updatedPost.content }
+              : p
+          )
+        );
+        console.log('✅ Post updated successfully');
+      },
+      error: (err) => {
+        console.error('❌ Error updating post:', err);
+        alert('Không thể cập nhật bài viết. Vui lòng thử lại.');
+      },
+    });
+  }
+
+  /**
+   * Xử lý delete post
+   */
+  onDelete(post: PostViewModel): void {
+    this.postService.deletePost(post.id).subscribe({
+      next: () => {
+        this.posts.update((list) => list.filter((p) => p.id !== post.id));
+        console.log('✅ Post deleted successfully');
+      },
+      error: (err) => {
+        console.error('❌ Error deleting post:', err);
+        alert('Không thể xóa bài viết. Vui lòng thử lại.');
+      },
+    });
+  }
+
+  /**
+   * TrackBy function để ngăn Angular re-create component khi chỉ thay đổi like count
+   */
+  trackByPostId(index: number, post: PostViewModel): string {
+    return post.id;
+  }
+
+  /**
    * Xử lý khi comment được thêm thành công
    */
   onCommentAdded(): void {
@@ -218,6 +263,7 @@ export class PostListComponent implements OnInit {
   private mapToViewModel(post: PostResponse, authorName?: string): PostViewModel {
     return {
       id: post.id,
+      authorId: post.authorId,
       authorName: authorName || this.currentUserName,
       createdAt: post.createdAt,
       content: post.content,
