@@ -102,9 +102,21 @@ export class ChatStateService {
     this.conversations$.next(conversations);
   }
 
-  addOlderConversations(olderConversations: Conversation[]): void {
+  /**
+   * Add or update a single conversation in state.
+   * If conversation exists, replace it and move to top. If not, prepend.
+   */
+  addOrUpdateConversation(conversation: Conversation): void {
     const current = this.conversations$.getValue();
-    this.conversations$.next([...current, ...olderConversations]);
+    const idx = current.findIndex(c => c.id === conversation.id);
+    let updated: Conversation[];
+    if (idx > -1) {
+      // replace and move to top
+      updated = [conversation, ...current.filter(c => c.id !== conversation.id)];
+    } else {
+      updated = [conversation, ...current];
+    }
+    this.conversations$.next(updated);
   }
 
   setMessagesLoading(isLoading: boolean): void { this.messagesLoading$.next(isLoading); }

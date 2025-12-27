@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { ChatStateService } from './chat-state.service';
 import { ChatApiService } from './chat-api.service'; // Import ChatApiService
+import { UserService } from '../../../core/services/user.service';
 import { Message } from '../models/message';
 import { KeycloakApiService } from '../../auth/services/keycloak-api.service';
 import { DeleteMessageEvent } from '../models/events';
@@ -17,7 +18,8 @@ export class ChatSocketService {
     constructor(
         private keycloakApi: KeycloakApiService,
         private chatState: ChatStateService,
-        private chatApi: ChatApiService // Inject ChatApiService
+        private chatApi: ChatApiService, // Inject ChatApiService
+        private userService: UserService
     ) { }
 
     public connect(): void {
@@ -61,29 +63,45 @@ export class ChatSocketService {
                 const existingConv = this.chatState.getConversationsValue().find(c => c.id === convId);
 
                 if (!existingConv) {
-                    console.log('New conversation identified, fetching updates in 500ms...', convId);
+                    console.log('New conversation identified, fetching conversation detail...', convId);
+                    // Fetch single conversation by id and add to state
+                    this.chatApi.getConversationById(convId).subscribe({
+                        next: newConv => {
+                            if (newConv) {
+                                // If ONE_TO_ONE, fetch other user's profile to enrich displayName/avatar
+                                const currentUser = this.chatState.getCurrentUserValue();
+                                if (newConv.type === 'ONE_TO_ONE') {
+                                    const otherId = newConv.participantIds.find((id: string) => id !== currentUser?.id) || newConv.participantIds[0];
+                                    if (otherId) {
+                                        this.userService.getUserById(String(otherId)).subscribe({
+                                            next: user => {
+                                                newConv.displayName = user.name;
+                                                newConv.displayAvatarUrl = user.avatarUrl;
+                                                this.chatState.addOrUpdateConversation(newConv);
 
-                    // Thêm delay để đảm bảo Backend commit transaction xong
-                    setTimeout(() => {
-                        this.chatApi.getConversations().subscribe(convs => {
-                            console.log('Fetched updated conversations:', convs.length);
-                            this.chatState.setConversations(convs);
-
-                            // Kiểm tra Pending Recipient
-                            const pending = this.chatState.getPendingRecipientValue();
-                            if (pending) {
-                                // Nếu đang có pending recipient 
-                                // Tìm conversation vừa tạo (nếu API trả về kịp)
-                                const newConv = convs.find(c => c.id === convId);
-                                if (newConv) {
-                                    this.chatState.selectConversation(convId);
-                                    this.chatState.setPendingRecipient(null);
+                                                const pending = this.chatState.getPendingRecipientValue();
+                                                if (pending && newConv.participantIds.includes(pending.id)) {
+                                                    this.chatState.selectConversation(String(newConv.id));
+                                                    this.chatState.setPendingRecipient(null);
+                                                }
+                                            },
+                                            error: () => {
+                                                // fallback: still add conversation without displayName
+                                                this.chatState.addOrUpdateConversation(newConv);
+                                            }
+                                        });
+                                    } else {
+                                        this.chatState.addOrUpdateConversation(newConv);
+                                    }
                                 } else {
-                                    console.warn('Still not found conversation after fetch. API lag?');
+                                    this.chatState.addOrUpdateConversation(newConv);
                                 }
+                            } else {
+                                console.warn('Conversation API did not return conversation for id:', convId);
                             }
-                        });
-                    }, 500);
+                        },
+                        error: err => console.error('Failed to fetch conversation by id:', err)
+                    });
                 }
 
                 this.chatState.addMessage(

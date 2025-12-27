@@ -17,14 +17,12 @@ export class ChatApiService {
   /**
    * Lấy danh sách các cuộc hội thoại của người dùng, hỗ trợ phân trang.
    */
-  getConversations(cursorUpdatedAt?: string, cursorId?: string, size = 20): Observable<Conversation[]> {
-    let params = new HttpParams().set('size', size.toString());
+  getConversations(): Observable<Conversation[]> {
+    return this.http.get<Conversation[]>(`${this.API_URL}/conversations`);
+  }
 
-    if (cursorUpdatedAt && cursorId) {
-      params = params.set('cursorUpdatedAt', cursorUpdatedAt);
-      params = params.set('cursorId', cursorId);
-    }
-    return this.http.get<Conversation[]>(`${this.API_URL}/conversations`, { params });
+  getConversationById(id: string): Observable<Conversation> {
+    return this.http.get<Conversation>(`${this.API_URL}/conversations/${id}`);
   }
 
   /**

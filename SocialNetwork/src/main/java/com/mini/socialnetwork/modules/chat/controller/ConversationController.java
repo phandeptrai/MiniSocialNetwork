@@ -2,8 +2,6 @@ package com.mini.socialnetwork.modules.chat.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,7 +13,7 @@ import com.mini.socialnetwork.modules.chat.entity.Conversation;
 import com.mini.socialnetwork.modules.chat.entity.Message;
 import com.mini.socialnetwork.modules.chat.repository.ConversationRepository;
 import com.mini.socialnetwork.modules.chat.repository.MessageRepository;
-import com.mini.socialnetwork.modules.chat.service.MessageService;
+import com.mini.socialnetwork.modules.chat.service.ConversationService;
 
 import java.time.Instant;
 import java.util.List;
@@ -46,56 +44,45 @@ import java.util.List;
 public class ConversationController {
 
     /** Repository truy cập dữ liệu tin nhắn */
+    /** Service xử lý conversation */
+    private final ConversationService conversationService;
+
+    /** Repository tin nhắn (dùng cho message pagination) */
     private final MessageRepository messageRepository;
 
-    /** Repository truy cập dữ liệu cuộc hội thoại */
+    /** Repository conversation (dùng cho permission check) */
     private final ConversationRepository conversationRepository;
 
     /**
-     * Lấy danh sách cuộc hội thoại của người dùng hiện tại với cursor-based pagination.
+     * Lấy toàn bộ danh sách cuộc hội thoại của người dùng hiện tại.
      * <p>
-     * Cuộc hội thoại được sắp xếp theo thời gian cập nhật (mới nhất trước),
-     * sau đó theo ID để đảm bảo tính nhất quán khi có cùng updatedAt.
+     * Trả về toàn bộ conversations mà user là participant, đã được map sang DTO.
+     * Ordering: `updatedAt` DESC, `id` DESC.
      * </p>
      *
-     * <h3>Cursor-based Pagination:</h3>
-     * <p>
-     * Thay vì offset-based (page number), sử dụng cursor với cặp (updatedAt, id)
-     * để đảm bảo không bỏ sót hoặc lặp dữ liệu khi có thay đổi realtime.
-     * </p>
-     *
-     * <h3>Cách sử dụng:</h3>
-     * <ul>
-     *   <li>Lần đầu: Không truyền cursor</li>
-     *   <li>Các lần sau: Truyền updatedAt và id của item cuối cùng từ lần trước</li>
-     * </ul>
-     *
-     * @param cursorUpdatedAt timestamp cursor cho pagination (tùy chọn, ISO format)
-     * @param cursorId ID cursor cho pagination (tùy chọn)
-     * @param size số lượng cuộc hội thoại cần lấy (mặc định: 15)
      * @param jwt JWT token của người dùng đang đăng nhập
-     * @return danh sách cuộc hội thoại của người dùng
+     * @return danh sách ConversationDTO
      */
     @GetMapping
-    public ResponseEntity<List<Conversation>> getUserConversations(
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant cursorUpdatedAt,
-            @RequestParam(required = false) Long cursorId,
-            @RequestParam(defaultValue = "15") int size,
-            @AuthenticationPrincipal Jwt jwt) {
-
+    public ResponseEntity<List<com.mini.socialnetwork.modules.chat.dto.ConversationDTO>> getUserConversations(@AuthenticationPrincipal Jwt jwt) {
         String currentUserId = jwt.getSubject();
-        PageRequest pageable = PageRequest.of(0, size,
-                Sort.by("updatedAt").descending().and(Sort.by("id").descending()));
-        List<Conversation> conversations;
-
-        if (cursorUpdatedAt == null || cursorId == null) {
-            conversations = conversationRepository
-                    .findByParticipantIdsContainingOrderByUpdatedAtDescIdDesc(currentUserId, pageable);
-        } else {
-            conversations = conversationRepository.findByParticipantIdsWithCursor(currentUserId, cursorUpdatedAt,
-                    cursorId, pageable);
-        }
+        List<com.mini.socialnetwork.modules.chat.dto.ConversationDTO> conversations = conversationService.getConversationsForUser(currentUserId);
         return ResponseEntity.ok(conversations);
+    }
+
+    /**
+     * Lấy chi tiết một conversation (DTO) theo ID nếu user là participant.
+     */
+    @GetMapping("/{conversationId}")
+    public ResponseEntity<com.mini.socialnetwork.modules.chat.dto.ConversationDTO> getConversationById(
+            @PathVariable Long conversationId,
+            @AuthenticationPrincipal Jwt jwt) {
+        String currentUserId = jwt.getSubject();
+        com.mini.socialnetwork.modules.chat.dto.ConversationDTO dto = conversationService.getConversationByIdForUser(conversationId, currentUserId);
+        if (dto == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Access Denied");
+        }
+        return ResponseEntity.ok(dto);
     }
 
     /**

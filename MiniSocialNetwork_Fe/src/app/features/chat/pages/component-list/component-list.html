@@ -24,7 +24,7 @@
   </div>
 
   <!-- Conversation items -->
-  <div class="conversations-wrapper" #conversationsWrapper (scroll)="onScroll($event)">
+  <div class="conversations-wrapper">
     <div class="conversation-item" *ngFor="let conv of conversations$ | async"
       [class.active]="(selectedConversation$ | async)?.id === conv.id" [class.unread]="hasUnread(conv.id)"
       (click)="selectConversation(conv)">
