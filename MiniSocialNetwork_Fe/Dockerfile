@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Install dependencies
 COPY package*.json ./
-RUN npm ci
+RUN npm install
 
 # Copy source and build SSR output
 COPY . .
@@ -16,7 +16,7 @@ WORKDIR /app
 
 # Install only production dependencies for runtime
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy built app from builder
 COPY --from=build /app/dist ./dist

@@ -4,6 +4,7 @@ import { User } from '../../models/user';
 import { ChatStateService } from '../../services/chat-state.service';
 import { ChatSocketService } from '../../services/chat-socket.service';
 import { CommonModule } from '@angular/common';
+import { UserService } from '../../../../core/services/user.service';
 
 @Component({
   selector: 'app-message-item',
@@ -16,14 +17,21 @@ export class MessageItem implements OnInit {
 
   // Không cần isSender ở input nữa vì chúng ta sẽ tự xác định
   currentUser: User | null = null;
+  senderAvatarUrl: string | null = null;
+  senderName: string | null = null;
 
-  constructor(private chatState: ChatStateService, private chatSocket: ChatSocketService) { }
+  constructor(private chatState: ChatStateService, private chatSocket: ChatSocketService, private userService: UserService) { }
 
   ngOnInit(): void {
     this.currentUser = this.chatState.getCurrentUserValue();
-    // Gán cờ isSender để template có thể sử dụng
     if (this.currentUser) {
       this.message.isSender = this.message.senderId === this.currentUser.id;
+      this.userService.getUserById(this.message.senderId).subscribe({
+        next: (user) => {
+          this.senderAvatarUrl = user.avatarUrl || null;
+          this.senderName = user.name || null;
+        }
+      });
     }
   }
 

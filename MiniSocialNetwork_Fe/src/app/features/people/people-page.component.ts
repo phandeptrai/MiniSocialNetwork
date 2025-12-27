@@ -31,8 +31,7 @@ export class PeoplePageComponent implements OnInit {
     ngOnInit(): void {
         // Skip auth operations during SSR
         if (!isPlatformBrowser(this.platformId)) {
-            console.log('SSR detected, loading mock data');
-            this.loadSuggestionsMock();
+            console.log('SSR detected, skipping data load');
             return;
         }
 
@@ -58,12 +57,12 @@ export class PeoplePageComponent implements OnInit {
             } else {
                 console.warn('Could not parse token claims');
                 this.error.set('Please login to view your followers and following');
-                this.loadSuggestionsMock(); // Fallback to mock
+                this.suggestions.set([]);
             }
         } else {
             console.warn('User not authenticated - no token found');
             this.error.set('Please login to view your followers and following');
-            this.loadSuggestionsMock(); // Fallback to mock
+            this.suggestions.set([]);
         }
     }
 
@@ -120,58 +119,9 @@ export class PeoplePageComponent implements OnInit {
                 },
                 error: (err) => {
                     console.error('Error loading suggestions:', err);
-                    // Fallback to mock data on error
-                    this.loadSuggestionsMock();
+                    this.suggestions.set([]);
                 }
             });
-    }
-
-    private loadSuggestionsMock(): void {
-        // Mock suggestions as fallback
-        this.suggestions.set([
-            {
-                id: '6',
-                name: 'Charlie Brown',
-                username: '@charlie_brown',
-                avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-                bio: 'Artist and dreamer. Painting life in bright colors.',
-                followersCount: 1,
-                followingCount: 3,
-                isFollowing: false,
-                followsYou: true
-            },
-            {
-                id: '7',
-                name: 'David King',
-                username: '@david_king',
-                avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150',
-                bio: 'Fitness coach and wellness advocate.',
-                followersCount: 15,
-                followingCount: 8,
-                isFollowing: false
-            },
-            {
-                id: '8',
-                name: 'Emma Watson',
-                username: '@emma_watson',
-                avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
-                bio: 'Bibliophile and nature enthusiast.',
-                followersCount: 42,
-                followingCount: 12,
-                isFollowing: false,
-                followsYou: true
-            },
-            {
-                id: '9',
-                name: 'Frank Ocean',
-                username: '@frank_ocean',
-                avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
-                bio: 'Tech enthusiast | Gamer',
-                followersCount: 120,
-                followingCount: 50,
-                isFollowing: false
-            }
-        ]);
     }
 
     toggleFollow(user: UserCard, list: 'followers' | 'following' | 'suggestions'): void {
@@ -232,11 +182,6 @@ export class PeoplePageComponent implements OnInit {
 
     openChat(user: UserCard): void {
         console.log('Opening chat with:', user);
-        if (user.id.length < 10) {
-            console.warn('WARNING: User ID seems to be MOCK DATA. Chat will likely fail.');
-            alert('Cannot chat with this user (Mock Data).');
-            return;
-        }
 
         this.router.navigate(['/chat'], {
             queryParams: {

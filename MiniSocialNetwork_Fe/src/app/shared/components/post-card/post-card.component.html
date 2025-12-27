@@ -11,12 +11,36 @@
       <div class="author">{{ post.authorName }}</div>
       <div class="time">{{ post.createdAt | date: 'shortTime' }}</div>
     </div>
+
+    <!-- 3-dot menu (only for owner) -->
+    <div class="menu-container" *ngIf="isOwner()">
+      <button type="button" class="menu-button" (click)="toggleMenu($event)">
+        ⋮
+      </button>
+      <div class="dropdown-menu" *ngIf="isMenuOpen()">
+        <button type="button" class="dropdown-item" (click)="startEdit()">
+          ✏️ Chỉnh sửa
+        </button>
+        <button type="button" class="dropdown-item delete" (click)="confirmDelete()">
+          🗑️ Xóa
+        </button>
+      </div>
+    </div>
   </header>
 
-  <!-- Content text -->
-  <p class="post-text" *ngIf="post.content">
+  <!-- Content text (view mode) -->
+  <p class="post-text" *ngIf="post.content && !isEditing()">
     {{ post.content }}
   </p>
+
+  <!-- Content text (edit mode) -->
+  <div class="edit-container" *ngIf="isEditing()">
+    <textarea class="edit-textarea" [(ngModel)]="editedContent" rows="3" placeholder="Nội dung bài viết..."></textarea>
+    <div class="edit-actions">
+      <button type="button" class="btn-cancel" (click)="cancelEdit()">Hủy</button>
+      <button type="button" class="btn-save" (click)="saveEdit()">Lưu</button>
+    </div>
+  </div>
 
   <!-- Images layout -->
   <div class="post-images" [ngSwitch]="imageCount()">

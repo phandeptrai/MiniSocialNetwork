@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,30 +19,69 @@ import org.springframework.web.multipart.MultipartFile;
 import com.mini.socialnetwork.dto.CommentResponse;
 import com.mini.socialnetwork.dto.SliceResponse;
 import com.mini.socialnetwork.model.Comment;
+import com.mini.socialnetwork.model.Notification;
+import com.mini.socialnetwork.model.Post;
 import com.mini.socialnetwork.service.CommentService;
+import com.mini.socialnetwork.service.NotificationService;
+import com.mini.socialnetwork.service.PostService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
+    private final PostService postService;
+    private final NotificationService notificationService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     /**
      * Create a new comment on a post
      * POST /api/comments
      * Form data: postId, userId, content (optional), image (optional, max 5MB)
+     * Optional: userName, userAvatar for notification
      */
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<CommentResponse> createComment(
             @RequestParam("postId") String postId,
             @RequestParam("userId") String userId,
             @RequestParam(value = "content", required = false) String content,
-            @RequestParam(value = "image", required = false) MultipartFile image) throws IOException {
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestParam(value = "userName", required = false) String userName,
+            @RequestParam(value = "userAvatar", required = false) String userAvatar) throws IOException {
 
         Comment saved = commentService.createComment(postId, userId, content, image);
+
+        // Gửi notification nếu comment bài của người khác
+        try {
+            Post post = postService.getPostById(postId);
+            String authorId = post.getAuthorId().toString();
+
+            // Không gửi notification nếu tự comment bài mình
+            if (!userId.equals(authorId)) {
+                Notification notification = notificationService.createCommentNotification(
+                        userId,
+                        authorId,
+                        userName != null ? userName : "Someone",
+                        userAvatar,
+                        postId,
+                        content);
+
+                // Gửi notification qua WebSocket
+                messagingTemplate.convertAndSendToUser(
+                        authorId,
+                        "/queue/notifications",
+                        notification);
+                log.info("Comment notification sent to user {}", authorId);
+            }
+        } catch (Exception e) {
+            log.error("Failed to send comment notification: {}", e.getMessage());
+        }
+
         return ResponseEntity.ok(CommentResponse.from(saved));
     }
 

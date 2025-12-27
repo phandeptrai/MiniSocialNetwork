@@ -23,7 +23,6 @@ import java.util.UUID;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
     @Column(nullable = false, unique = true, length = 50)
@@ -34,6 +33,9 @@ public class User {
 
     private String name;
     private String bio;
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String avatarUrl;
 
     @ElementCollection

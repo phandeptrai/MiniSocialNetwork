@@ -169,7 +169,8 @@ export class CommentPopupComponent implements OnInit {
             this.post.id,
             this.currentUserId,
             hasContent ? content : null,
-            this.selectedImage
+            this.selectedImage,
+            this.currentUserName  // Pass userName for notification
         ).subscribe({
             next: (comment: CommentResponse) => {
                 console.log('✅ Comment created:', comment);

@@ -1,5 +1,6 @@
 export interface PostViewModel {
   id: string;
+  authorId: string;
   authorName: string;
   authorAvatarUrl?: string | null;
   createdAt: string; // ISO string

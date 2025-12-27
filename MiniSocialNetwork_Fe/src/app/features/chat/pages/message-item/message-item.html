@@ -1,7 +1,10 @@
 <div class="message-wrapper" [class.sent]="message.isSender" [class.received]="!message.isSender">
   <!-- Avatar cho tin nhắn nhận -->
   <div class="message-avatar" *ngIf="!message.isSender">
-    <img src="https://i.pravatar.cc/36?u={{message.senderId}}" alt="User avatar" />
+    <img [src]="senderAvatarUrl" *ngIf="senderAvatarUrl" alt="User avatar" />
+    <div class="avatar-placeholder" *ngIf="!senderAvatarUrl">
+      {{ senderName ? senderName.charAt(0).toUpperCase() : 'U' }}
+    </div>
   </div>
 
   <div class="message-content">

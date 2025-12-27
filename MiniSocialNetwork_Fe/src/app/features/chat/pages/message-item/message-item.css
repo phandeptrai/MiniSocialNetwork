@@ -7,6 +7,19 @@
   display: block;
 }
 
+.message-avatar .avatar-placeholder {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8ecf0;
+  color: #657786;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .message-wrapper {
   display: flex;
   align-items: flex-end;

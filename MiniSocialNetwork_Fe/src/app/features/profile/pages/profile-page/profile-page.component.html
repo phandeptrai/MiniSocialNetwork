@@ -14,7 +14,7 @@
                     <h1 class="name">{{ userProfile().name }}</h1>
                     <span class="username">&#64;{{ userProfile().username }}</span>
                 </div>
-                <p class="bio">{{ userProfile().bio }}</p>
+                <p class="bio">{{ userProfile().bio || 'No bio yet' }}</p>
             </div>
         </div>
 
@@ -61,6 +61,7 @@
 
             <app-post-card *ngFor="let post of posts()" [post]="{
           id: post.id,
+          authorId: post.authorId,
           authorName: userProfile().name,
           createdAt: post.createdAt,
           content: post.content,
@@ -71,3 +72,8 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Profile Popup -->
+<app-edit-profile-popup [isOpen]="showEditPopup()" [currentProfile]="dbProfile()" (close)="onCloseEditPopup()"
+    (saved)="onProfileSaved($event)">
+</app-edit-profile-popup>

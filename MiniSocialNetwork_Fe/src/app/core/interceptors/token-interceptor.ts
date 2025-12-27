@@ -39,7 +39,8 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   return next(clonedReq).pipe(
     catchError((error: HttpErrorResponse) => {
       // Khi nhận lỗi 401 Unauthorized, redirect về trang login
-      if (error.status === 401) {
+      // Nhưng bỏ qua nếu là request /api/users/me (có thể fail cho user mới)
+      if (error.status === 401 && !req.url.includes('/api/users/me')) {
         console.warn('🔐 Token expired or invalid. Redirecting to login...');
         keycloakApi.logout();
         router.navigate(['/login']);

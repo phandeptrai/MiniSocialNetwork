@@ -32,13 +32,15 @@ export class CommentService {
     /**
      * Tạo comment mới (hỗ trợ upload ảnh)
      * POST /api/comments
-     * Form data: postId, userId, content (optional), image (optional)
+     * Form data: postId, userId, content (optional), image (optional), userName, userAvatar
      */
     createComment(
         postId: string,
         userId: string,
         content: string | null,
-        image: File | null
+        image: File | null,
+        userName?: string,
+        userAvatar?: string
     ): Observable<CommentResponse> {
         const formData = new FormData();
         formData.append('postId', postId);
@@ -50,6 +52,14 @@ export class CommentService {
 
         if (image) {
             formData.append('image', image);
+        }
+
+        if (userName) {
+            formData.append('userName', userName);
+        }
+
+        if (userAvatar) {
+            formData.append('userAvatar', userAvatar);
         }
 
         return this.http.post<CommentResponse>(this.API_URL, formData);

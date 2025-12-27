@@ -1,24 +1,85 @@
 package com.mini.socialnetwork.controller;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import com.mini.socialnetwork.dto.UpdateProfileRequest;
 import com.mini.socialnetwork.dto.UserProfileDto;
 import com.mini.socialnetwork.model.User;
 import com.mini.socialnetwork.repository.UserRepository;
+import com.mini.socialnetwork.service.UserProfileService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserRepository userRepository;
+    private final UserProfileService userProfileService;
+    private final com.mini.socialnetwork.modules.auth.service.KeycloakAdminService keycloakAdminService;
+
+    /**
+     * Get current user's profile
+     * GET /api/users/me
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUserProfile(@AuthenticationPrincipal Jwt jwt) {
+        if (jwt == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        String keycloakId = jwt.getSubject();
+        String username = jwt.getClaimAsString("preferred_username");
+        String email = jwt.getClaimAsString("email");
+        String name = jwt.getClaimAsString("name");
+
+        if (username == null) {
+            return ResponseEntity.badRequest().body("Username not found in token");
+        }
+
+        User user = userProfileService.getOrCreateProfile(keycloakId, username, email, name);
+        return ResponseEntity.ok(user);
+    }
+
+    /**
+     * Update current user's profile
+     * PUT /api/users/me
+     */
+    @PutMapping("/me")
+    public ResponseEntity<?> updateCurrentUserProfile(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody UpdateProfileRequest request) {
+        if (jwt == null) {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
+        String keycloakId = jwt.getSubject();
+        log.info("Updating profile for user with Keycloak ID: {}", keycloakId);
+        String username = jwt.getClaimAsString("preferred_username");
+        String email = jwt.getClaimAsString("email");
+
+        if (username == null) {
+            return ResponseEntity.badRequest().body("Username not found in token");
+        }
+
+        try {
+            User updatedUser = userProfileService.updateProfile(keycloakId, username, email, request);
+            return ResponseEntity.ok(updatedUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(500).body("Error updating profile: " + e.getMessage());
+        }
+    }
 
     /**
      * Get all users (for debugging)
@@ -57,8 +118,6 @@ public class UserController {
         return ResponseEntity.ok(savedUser);
     }
 
-    private final com.mini.socialnetwork.modules.auth.service.KeycloakAdminService keycloakAdminService;
-
     /**
      * Get user by ID (Fetched from Keycloak)
      * GET /api/users/{id}
@@ -67,9 +126,12 @@ public class UserController {
     public ResponseEntity<?> getUserById(@PathVariable String id) {
         try {
             java.util.Map<String, Object> keycloakUser = keycloakAdminService.getUserById(id);
+            
             if (keycloakUser == null) {
                 return ResponseEntity.notFound().build();
             }
+
+            Optional<User> localUserOpt = userRepository.findById(UUID.fromString(id));
 
             // Map Keycloak User to User model or DTO
             User user = new User();
@@ -78,10 +140,12 @@ public class UserController {
             user.setEmail((String) keycloakUser.get("email"));
             user.setName(((String) keycloakUser.getOrDefault("firstName", "")) + " "
                     + ((String) keycloakUser.getOrDefault("lastName", "")));
-            user.setBio("User from Keycloak"); // Keycloak attributes extraction needed for bio/avatar if stored there
+            user.setBio(localUserOpt.isPresent() ? localUserOpt.get().getBio() : ""); 
+            user.setAvatarUrl(localUserOpt.isPresent() ? localUserOpt.get().getAvatarUrl() : null);
 
             return ResponseEntity.ok(user);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.notFound().build();
         }
     }
