@@ -90,18 +90,22 @@ public class PostService {
     public Post getPostById(String id) {
         UUID uuid = UUID.fromString(id);
         Optional<Post> post = postRepository.findById(uuid);
-        return post.orElseThrow(() -> new IllegalArgumentException("Post not found"));
+        Post foundPost = post.orElseThrow(() -> new IllegalArgumentException("Post not found"));
+        if (foundPost.isDeleted()) {
+            throw new IllegalArgumentException("Post not found");
+        }
+        return foundPost;
     }
 
     public List<Post> getPostsByAuthor(String authorId) {
         UUID objectId = UUID.fromString(authorId);
-        return postRepository.findByAuthorId(objectId);
+        return postRepository.findByAuthorIdAndIsDeletedFalse(objectId);
     }
 
     public Slice<Post> getPostsByAuthor(String authorId, int page, int size) {
         UUID objectId = UUID.fromString(authorId);
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return postRepository.findByAuthorId(objectId, pageable);
+        return postRepository.findByAuthorIdAndIsDeletedFalse(objectId, pageable);
     }
 
     /**
@@ -128,7 +132,7 @@ public class PostService {
                     .forEach(authorIds::add);
         }
 
-        return postRepository.findByAuthorIdIn(authorIds, pageable);
+        return postRepository.findByAuthorIdInAndIsDeletedFalse(authorIds, pageable);
     }
 
     public Post toggleLike(String postId, String userId) {

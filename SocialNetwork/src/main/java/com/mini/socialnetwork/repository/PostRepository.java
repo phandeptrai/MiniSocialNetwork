@@ -10,8 +10,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.mini.socialnetwork.model.Post;
 
 public interface PostRepository extends JpaRepository<Post, UUID> {
-    List<Post> findByAuthorId(UUID authorId);
-    Slice<Post> findByAuthorId(UUID authorId, Pageable pageable);
-    Slice<Post> findByAuthorIdIn(List<UUID> authorIds, Pageable pageable);
-}
+    List<Post> findByAuthorIdAndIsDeletedFalse(UUID authorId);
 
+    Slice<Post> findByAuthorIdAndIsDeletedFalse(UUID authorId, Pageable pageable);
+
+    Slice<Post> findByAuthorIdInAndIsDeletedFalse(List<UUID> authorIds, Pageable pageable);
+}
