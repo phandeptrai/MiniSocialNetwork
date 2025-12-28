@@ -1,5 +1,6 @@
-import { Component, OnInit, signal, inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, signal, inject, PLATFORM_ID, computed } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PeopleService, UserCard } from './people.service';
 import { KeycloakApiService } from '../auth/services/keycloak-api.service';
@@ -8,7 +9,7 @@ import { finalize } from 'rxjs/operators';
 @Component({
     selector: 'app-people-page',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, FormsModule],
     templateUrl: './people-page.component.html',
     styleUrls: ['./people-page.component.css']
 })
@@ -25,6 +26,63 @@ export class PeoplePageComponent implements OnInit {
     isFollowersLoading = signal(false);
     isFollowingLoading = signal(false);
     error = signal<string | null>(null);
+
+    // Search and Filter
+    searchQuery = signal('');
+    filterMode = signal<'all' | 'following' | 'not-following'>('all');
+
+    // Computed filtered lists
+    filteredFollowers = computed(() => this.applySearchFilter(this.followers()));
+    filteredFollowing = computed(() => this.applySearchFilter(this.following()));
+    filteredSuggestions = computed(() => this.applySearchFilter(this.suggestions()));
+
+    // Combined list for filter tabs
+    allUsers = computed(() => {
+        const all: UserCard[] = [];
+        const seenIds = new Set<string>();
+
+        // Add followers
+        for (const user of this.followers()) {
+            if (!seenIds.has(user.id)) {
+                seenIds.add(user.id);
+                all.push(user);
+            }
+        }
+        // Add following
+        for (const user of this.following()) {
+            if (!seenIds.has(user.id)) {
+                seenIds.add(user.id);
+                all.push(user);
+            }
+        }
+        // Add suggestions
+        for (const user of this.suggestions()) {
+            if (!seenIds.has(user.id)) {
+                seenIds.add(user.id);
+                all.push(user);
+            }
+        }
+        return all;
+    });
+
+    // Filtered results based on search and filter mode
+    filteredResults = computed(() => {
+        let users = this.allUsers();
+
+        // Apply filter mode
+        // 'following' = Đã follow = users where isFollowing is true
+        // 'not-following' = Chưa follow = users where isFollowing is false
+        if (this.filterMode() === 'following') {
+            // Đã follow: lấy từ danh sách following (những người mình đang follow)
+            users = this.following();
+        } else if (this.filterMode() === 'not-following') {
+            // Chưa follow: lấy từ danh sách suggestions (những người mình chưa follow)
+            users = this.suggestions();
+        }
+
+        // Apply search
+        return this.applySearchFilter(users);
+    });
 
     private currentUserId: string | null = null;
 
@@ -173,7 +231,7 @@ export class PeoplePageComponent implements OnInit {
         }
     }
 
-    scrollContainer(containerType: 'followers' | 'following' | 'suggestions', scrollAmount: number): void {
+    scrollContainer(containerType: 'followers' | 'following' | 'suggestions' | 'filtered', scrollAmount: number): void {
         const container = document.getElementById(`${containerType}-container`);
         if (container) {
             container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
@@ -194,5 +252,60 @@ export class PeoplePageComponent implements OnInit {
 
     refresh(): void {
         this.loadCurrentUserInfo();
+    }
+
+    // Search and Filter Methods
+    private applySearchFilter(users: UserCard[]): UserCard[] {
+        const query = this.searchQuery().toLowerCase().trim();
+        if (!query) {
+            return users;
+        }
+        return users.filter(user =>
+            user.name.toLowerCase().includes(query) ||
+            user.username.toLowerCase().includes(query)
+        );
+    }
+
+    onSearchChange(query: string): void {
+        this.searchQuery.set(query);
+    }
+
+    setFilterMode(mode: 'all' | 'following' | 'not-following'): void {
+        this.filterMode.set(mode);
+    }
+
+    toggleFollowInResults(user: UserCard): void {
+        if (!this.currentUserId) {
+            console.error('No current user ID available');
+            return;
+        }
+
+        this.isLoading.set(true);
+        const wasFollowing = user.isFollowing;
+
+        // Optimistic update
+        user.isFollowing = !user.isFollowing;
+
+        const action$ = wasFollowing
+            ? this.peopleService.unfollow(this.currentUserId, user.id)
+            : this.peopleService.follow(this.currentUserId, user.id);
+
+        action$
+            .pipe(finalize(() => this.isLoading.set(false)))
+            .subscribe({
+                next: (response) => {
+                    console.log('Follow action successful:', response);
+                    // Refresh all data to ensure consistency
+                    this.loadFollowers();
+                    this.loadFollowing();
+                    this.loadSuggestions();
+                },
+                error: (err) => {
+                    console.error('Error toggling follow:', err);
+                    // Revert optimistic update on error
+                    user.isFollowing = wasFollowing;
+                    this.error.set('Failed to update follow status');
+                }
+            });
     }
 }

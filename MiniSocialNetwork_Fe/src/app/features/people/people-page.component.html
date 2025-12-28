@@ -7,6 +7,101 @@
     </div>
     }
 
+    <!-- Search & Filter Section -->
+    <section class="search-filter-section">
+        <div class="search-bar">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Tìm kiếm theo tên hoặc username..." [ngModel]="searchQuery()"
+                (ngModelChange)="onSearchChange($event)" />
+            @if (searchQuery()) {
+            <button class="clear-btn" (click)="onSearchChange('')">✕</button>
+            }
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-tab" [class.active]="filterMode() === 'all'" (click)="setFilterMode('all')">
+                <span class="tab-icon">👥</span>
+                Tất cả
+                <span class="tab-count">{{ allUsers().length }}</span>
+            </button>
+            <button class="filter-tab" [class.active]="filterMode() === 'following'"
+                (click)="setFilterMode('following')">
+                <span class="tab-icon">✓</span>
+                Đã follow
+                <span class="tab-count">{{ following().length }}</span>
+            </button>
+            <button class="filter-tab" [class.active]="filterMode() === 'not-following'"
+                (click)="setFilterMode('not-following')">
+                <span class="tab-icon">+</span>
+                Chưa follow
+                <span class="tab-count">{{ suggestions().length }}</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Filtered Results Section (shown when searching or filtering) -->
+    @if (searchQuery() || filterMode() !== 'all') {
+    <section class="user-section filtered-results-section">
+        <div class="section-header">
+            <h2>
+                <span class="icon">🔎</span>
+                Kết quả lọc ({{ filteredResults().length }})
+            </h2>
+            @if (filteredResults().length > 0) {
+            <div class="scroll-buttons">
+                <button class="scroll-btn" (click)="scrollContainer('filtered', -320)">‹</button>
+                <button class="scroll-btn" (click)="scrollContainer('filtered', 320)">›</button>
+            </div>
+            }
+        </div>
+        @if (filteredResults().length === 0) {
+        <div class="empty-state">
+            <p>🔍 Không tìm thấy người dùng phù hợp.</p>
+        </div>
+        } @else {
+        <div class="cards-container" id="filtered-container">
+            @for (user of filteredResults(); track user.id) {
+            <div class="user-card">
+                <div class="card-header">
+                    <img [src]="user.avatarUrl" [alt]="user.name" class="avatar" />
+                    @if (user.followsYou) {
+                    <span class="follows-you-badge">FOLLOWS YOU</span>
+                    }
+                </div>
+                <div class="card-body">
+                    <h3 class="name">{{ user.name }}</h3>
+                    <span class="username">{{ user.username }}</span>
+                    <p class="bio">{{ user.bio }}</p>
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-value">{{ user.followersCount }}</span>
+                            <span class="stat-label">FOLLOWERS</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value">{{ user.followingCount }}</span>
+                            <span class="stat-label">FOLLOWING</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="action-buttons">
+                        <button class="follow-btn" [class.following]="user.isFollowing"
+                            (click)="toggleFollowInResults(user)" [disabled]="isLoading()">
+                            <span class="btn-icon">{{ user.isFollowing ? '✓' : '+' }}</span>
+                            {{ user.isFollowing ? 'Unfollow' : 'Follow' }}
+                        </button>
+                        <button class="message-btn" (click)="openChat(user)">
+                            <span class="btn-icon">💬</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+        }
+    </section>
+    } @else {
+
     <!-- Suggested for you Section (First) -->
     <section class="user-section">
         <div class="section-header">
@@ -182,4 +277,5 @@
         </div>
         }
     </section>
+    }
 </div>
