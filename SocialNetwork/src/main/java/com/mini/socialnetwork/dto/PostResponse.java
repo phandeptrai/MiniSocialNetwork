@@ -44,8 +44,8 @@ public record PostResponse(
 
                 List<String> imageUrls = post.getImageUrls() != null ? new ArrayList<>(post.getImageUrls()) : null;
 
-                // Extract author info
-                String authorName = null;
+                // Extract author info with fallback
+                String authorName = "User"; // Default fallback
                 String authorAvatarUrl = null;
                 if (author != null) {
                         authorName = author.getName() != null ? author.getName() : author.getUsername();

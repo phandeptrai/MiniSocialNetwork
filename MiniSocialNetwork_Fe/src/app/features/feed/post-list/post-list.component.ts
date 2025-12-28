@@ -260,11 +260,15 @@ export class PostListComponent implements OnInit {
   /**
    * Map PostResponse sang PostViewModel
    */
-  private mapToViewModel(post: PostResponse, authorName?: string): PostViewModel {
+  private mapToViewModel(post: PostResponse, fallbackAuthorName?: string): PostViewModel {
+    // Chỉ dùng fallbackAuthorName nếu đây là bài viết của chính user hiện tại
+    const isOwnPost = post.authorId === this.currentUserId;
+    const authorName = post.authorName || (isOwnPost ? fallbackAuthorName : null) || 'User';
+
     return {
       id: post.id,
       authorId: post.authorId,
-      authorName: post.authorName || authorName || this.currentUserName,
+      authorName: authorName,
       authorAvatarUrl: post.authorAvatarUrl,
       createdAt: post.createdAt,
       content: post.content,
