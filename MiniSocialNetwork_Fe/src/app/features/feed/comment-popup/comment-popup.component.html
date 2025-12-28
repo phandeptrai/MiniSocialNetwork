@@ -36,7 +36,8 @@
         <!-- Comment items -->
         <div *ngFor="let comment of comments()" class="comment-item">
           <div class="comment-avatar">
-            <div class="avatar-placeholder"></div>
+            <img *ngIf="comment.avatarUrl" [src]="comment.avatarUrl" [alt]="comment.userName" class="avatar-img" />
+            <div *ngIf="!comment.avatarUrl" class="avatar-placeholder">{{ comment.userName.charAt(0).toUpperCase() }}</div>
           </div>
           <div class="comment-content">
             <div class="comment-header">

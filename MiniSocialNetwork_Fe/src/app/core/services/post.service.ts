@@ -7,8 +7,6 @@ import { environment } from '../../../environments/environment';
 export interface PostResponse {
   id: string;
   authorId: string;
-  authorName: string | null;
-  authorAvatarUrl: string | null;
   content: string | null;
   imageUrls: string[] | null;
   likes: string[] | null;

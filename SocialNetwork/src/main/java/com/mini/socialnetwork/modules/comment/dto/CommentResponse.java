@@ -1,8 +1,8 @@
-package com.mini.socialnetwork.dto;
+package com.mini.socialnetwork.modules.comment.dto;
 
 import java.time.Instant;
 
-import com.mini.socialnetwork.model.Comment;
+import com.mini.socialnetwork.modules.comment.entity.Comment;
 
 public record CommentResponse(
         String id,

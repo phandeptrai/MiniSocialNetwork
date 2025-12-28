@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.repository;
+package com.mini.socialnetwork.modules.post.repository;
 
 import java.util.List;
 import java.util.UUID;
@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.mini.socialnetwork.model.Post;
+import com.mini.socialnetwork.modules.post.entity.Post;
 
 public interface PostRepository extends JpaRepository<Post, UUID> {
     List<Post> findByAuthorIdAndIsDeletedFalse(UUID authorId);

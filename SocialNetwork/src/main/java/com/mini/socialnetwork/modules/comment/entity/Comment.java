@@ -1,10 +1,8 @@
-package com.mini.socialnetwork.model;
+package com.mini.socialnetwork.modules.comment.entity;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
-import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,23 +19,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "posts")
-public class Post {
+@Table(name = "comments")
+public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-
-    private UUID authorId; // User
+    private UUID postId;
+    private UUID userId;
     private String content;
-
-    @ElementCollection
-    private List<String> imageUrls; // up to 4 images
-
-    @ElementCollection
-    private List<UUID> likes;
-
-    private int likeCount;
-    private int commentCount;
+    private String imageUrl; // Optional image (max 1, max 5MB)
     private Instant createdAt;
     private Instant updatedAt;
     private boolean isDeleted;

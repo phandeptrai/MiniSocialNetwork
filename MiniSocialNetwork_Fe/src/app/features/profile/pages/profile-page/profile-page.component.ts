@@ -35,8 +35,8 @@ export class ProfilePageComponent implements OnInit {
 
     readonly userProfile = signal<UserProfile>({
         id: '',
-        name: 'User',
-        username: 'user',
+        name: '',
+        username: '',
         bio: '',
         avatarUrl: '',
         postCount: 0,
@@ -62,10 +62,10 @@ export class ProfilePageComponent implements OnInit {
                 // Set initial values from token
                 this.userProfile.set({
                     id: claims.sub,
-                    name: claims.name || claims.preferred_username || 'User',
-                    username: claims.preferred_username || 'user',
+                    name: claims.name || claims.preferred_username || '',
+                    username: claims.preferred_username || '',
                     bio: '',
-                    avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(claims.name || 'User')}&background=667eea&color=fff&size=128`,
+                    avatarUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(claims.name || claims.preferred_username || 'U')}&background=667eea&color=fff&size=128`,
                     postCount: 0,
                     followerCount: 0,
                     followingCount: 0,

@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.service;
+package com.mini.socialnetwork.modules.post.service;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -20,13 +20,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.mini.socialnetwork.model.Post;
-import com.mini.socialnetwork.model.User;
-import com.mini.socialnetwork.modules.auth.service.KeycloakAdminService;
+import com.mini.socialnetwork.modules.post.entity.Post;
+import com.mini.socialnetwork.modules.post.dto.PostResponse;
+import com.mini.socialnetwork.modules.post.repository.PostRepository;
+import com.mini.socialnetwork.modules.comment.repository.CommentRepository;
 import com.mini.socialnetwork.repository.FollowRepository;
-import com.mini.socialnetwork.repository.PostRepository;
-import com.mini.socialnetwork.repository.UserRepository;
-import com.mini.socialnetwork.repository.CommentRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,11 +38,9 @@ public class PostService {
     private static final int MAX_IMAGES = 4;
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
     private final FollowRepository followRepository;
     private final CommentRepository commentRepository;
     private final Cloudinary cloudinary;
-    private final KeycloakAdminService keycloakAdminService;
 
     public Post createPost(String authorId, String content, List<MultipartFile> images) throws IOException {
         boolean hasContent = StringUtils.hasText(content);
@@ -182,7 +178,7 @@ public class PostService {
     }
 
     @org.springframework.transaction.annotation.Transactional
-    public com.mini.socialnetwork.dto.PostResponse deletePost(String postId, String userId) {
+    public PostResponse deletePost(String postId, String userId) {
         log.info("Deleting post {} by user {}", postId, userId);
         try {
             UUID postObjectId = UUID.fromString(postId);
@@ -201,7 +197,7 @@ public class PostService {
             if (post.getLikes() != null) {
                 post.getLikes().size();
             }
-            com.mini.socialnetwork.dto.PostResponse response = com.mini.socialnetwork.dto.PostResponse.from(post);
+            PostResponse response = PostResponse.from(post);
 
             // Delete all comments
             log.info("Deleting comments for post {}", postId);
@@ -219,111 +215,6 @@ public class PostService {
         } catch (Exception e) {
             log.error("Error deleting post: ", e);
             throw e;
-        }
-    }
-
-    /**
-     * Convert a Post to PostResponse with author information.
-     * Syncs user from Keycloak if not in MySQL.
-     */
-    public com.mini.socialnetwork.dto.PostResponse toPostResponse(Post post) {
-        User author = userRepository.findById(post.getAuthorId()).orElse(null);
-
-        // If author not in MySQL, try to sync from Keycloak
-        if (author == null && post.getAuthorId() != null) {
-            author = syncUserFromKeycloak(post.getAuthorId().toString());
-        }
-
-        return com.mini.socialnetwork.dto.PostResponse.from(post, author);
-    }
-
-    /**
-     * Batch convert multiple Posts to PostResponses with author information.
-     * Fetches from MySQL first, then from Keycloak for missing users.
-     * Auto-syncs new users to MySQL for future requests.
-     */
-    public List<com.mini.socialnetwork.dto.PostResponse> toPostResponses(List<Post> posts) {
-        if (posts == null || posts.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        // Collect unique author IDs
-        Set<UUID> authorIds = posts.stream()
-                .map(Post::getAuthorId)
-                .filter(java.util.Objects::nonNull)
-                .collect(java.util.stream.Collectors.toSet());
-
-        // Batch fetch all authors from MySQL
-        Map<UUID, User> authorMap = userRepository.findAllById(authorIds).stream()
-                .collect(java.util.stream.Collectors.toMap(User::getId, user -> user));
-
-        // Find missing authors (not in MySQL)
-        Set<UUID> missingAuthorIds = authorIds.stream()
-                .filter(id -> !authorMap.containsKey(id))
-                .collect(java.util.stream.Collectors.toSet());
-
-        // Fetch missing authors from Keycloak and sync to MySQL
-        if (!missingAuthorIds.isEmpty()) {
-            log.info("Fetching {} missing authors from Keycloak", missingAuthorIds.size());
-            for (UUID authorId : missingAuthorIds) {
-                try {
-                    User syncedUser = syncUserFromKeycloak(authorId.toString());
-                    if (syncedUser != null) {
-                        authorMap.put(authorId, syncedUser);
-                    }
-                } catch (Exception e) {
-                    log.warn("Failed to sync user {} from Keycloak: {}", authorId, e.getMessage());
-                }
-            }
-        }
-
-        // Convert posts with author info
-        return posts.stream()
-                .map(post -> {
-                    User author = post.getAuthorId() != null ? authorMap.get(post.getAuthorId()) : null;
-                    return com.mini.socialnetwork.dto.PostResponse.from(post, author);
-                })
-                .collect(java.util.stream.Collectors.toList());
-    }
-
-    /**
-     * Sync a user from Keycloak to MySQL database
-     */
-    private User syncUserFromKeycloak(String keycloakId) {
-        try {
-            Map<String, Object> keycloakUser = keycloakAdminService.getUserById(keycloakId);
-            if (keycloakUser == null) {
-                return null;
-            }
-
-            String username = (String) keycloakUser.get("username");
-            String email = (String) keycloakUser.get("email");
-            String firstName = (String) keycloakUser.getOrDefault("firstName", "");
-            String lastName = (String) keycloakUser.getOrDefault("lastName", "");
-            String name = (firstName + " " + lastName).trim();
-            if (name.isEmpty()) {
-                name = username;
-            }
-
-            // Create new user in MySQL
-            User newUser = User.builder()
-                    .id(UUID.fromString(keycloakId))
-                    .username(username)
-                    .email(email)
-                    .name(name)
-                    .bio("")
-                    .avatarUrl("https://ui-avatars.com/api/?name=" + username + "&background=667eea&color=fff")
-                    .isActive(true)
-                    .createdAt(Instant.now())
-                    .updatedAt(Instant.now())
-                    .build();
-
-            User savedUser = userRepository.save(newUser);
-            log.info("Synced user {} from Keycloak to MySQL", username);
-            return savedUser;
-        } catch (Exception e) {
-            log.error("Error syncing user from Keycloak: {}", e.getMessage());
-            return null;
         }
     }
 }

@@ -43,7 +43,7 @@ export class FeedPageComponent implements OnInit {
   private readonly keycloakApi = inject(KeycloakApiService);
 
   currentUserId = '';
-  currentUserName = 'User';
+  currentUserName = '';
 
   @ViewChild(PostListComponent) postListComponent!: PostListComponent;
 
@@ -60,7 +60,7 @@ export class FeedPageComponent implements OnInit {
       const claims = this.keycloakApi.parseToken(token);
       if (claims) {
         this.currentUserId = claims.sub || '';
-        this.currentUserName = claims.name || claims.preferred_username || 'User';
+        this.currentUserName = claims.name || claims.preferred_username || '';
       }
     }
   }

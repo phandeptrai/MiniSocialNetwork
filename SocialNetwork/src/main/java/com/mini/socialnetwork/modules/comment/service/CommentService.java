@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.service;
+package com.mini.socialnetwork.modules.comment.service;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -14,10 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import com.mini.socialnetwork.model.Comment;
-import com.mini.socialnetwork.model.Post;
-import com.mini.socialnetwork.repository.CommentRepository;
-import com.mini.socialnetwork.repository.PostRepository;
+import com.mini.socialnetwork.modules.comment.entity.Comment;
+import com.mini.socialnetwork.modules.comment.repository.CommentRepository;
+import com.mini.socialnetwork.modules.post.entity.Post;
+import com.mini.socialnetwork.modules.post.repository.PostRepository;
 
 import lombok.RequiredArgsConstructor;
 

@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.controller;
+package com.mini.socialnetwork.modules.comment.controller;
 
 import java.io.IOException;
 import java.util.List;
@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.mini.socialnetwork.dto.CommentResponse;
+import com.mini.socialnetwork.modules.comment.dto.CommentResponse;
+import com.mini.socialnetwork.modules.comment.entity.Comment;
+import com.mini.socialnetwork.modules.comment.service.CommentService;
 import com.mini.socialnetwork.dto.SliceResponse;
-import com.mini.socialnetwork.model.Comment;
 import com.mini.socialnetwork.model.Notification;
-import com.mini.socialnetwork.model.Post;
-import com.mini.socialnetwork.service.CommentService;
+import com.mini.socialnetwork.modules.post.entity.Post;
+import com.mini.socialnetwork.modules.post.service.PostService;
 import com.mini.socialnetwork.service.NotificationService;
-import com.mini.socialnetwork.service.PostService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

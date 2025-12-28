@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.repository;
+package com.mini.socialnetwork.modules.comment.repository;
 
 import java.util.List;
 import java.util.UUID;
@@ -7,7 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.mini.socialnetwork.model.Comment;
+import com.mini.socialnetwork.modules.comment.entity.Comment;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
 

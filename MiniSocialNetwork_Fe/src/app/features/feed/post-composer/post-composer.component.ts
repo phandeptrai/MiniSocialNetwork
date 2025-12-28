@@ -12,7 +12,7 @@ import { KeycloakApiService } from '../../auth/services/keycloak-api.service';
   styleUrl: './post-composer.component.css',
 })
 export class PostComposerComponent implements OnInit {
-  @Input() currentUserName = 'User';
+  @Input() currentUserName = '';
   @Input() currentUserAvatarUrl: string | null = null;
 
   @Output() postCreated = new EventEmitter<PostResponse>();
@@ -72,7 +72,7 @@ export class PostComposerComponent implements OnInit {
     if (token) {
       const claims = this.keycloakApi.parseToken(token);
       if (claims) {
-        this.currentUserName = claims.name || claims.preferred_username || 'User';
+        this.currentUserName = claims.name || claims.preferred_username || '';
       }
     }
   }

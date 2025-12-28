@@ -11,13 +11,17 @@ import {
     ViewChild
 } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { PostViewModel } from '../../../shared/models/post.model';
 import { CommentService, CommentResponse, SliceResponse } from '../../../core/services/comment.service';
+import { UserService, UserProfile } from '../../../core/services/user.service';
 
 export interface CommentViewModel {
     id: string;
     userId: string;
     userName: string;
+    avatarUrl: string | null;
     content: string | null;
     imageUrl: string | null;
     createdAt: string;
@@ -33,7 +37,7 @@ export interface CommentViewModel {
 export class CommentPopupComponent implements OnInit {
     @Input() post!: PostViewModel;
     @Input() currentUserId!: string;
-    @Input() currentUserName: string = 'User';
+    @Input() currentUserName: string = '';
 
     @Output() close = new EventEmitter<void>();
     @Output() commentAdded = new EventEmitter<void>();
@@ -43,6 +47,7 @@ export class CommentPopupComponent implements OnInit {
 
     private readonly fb = inject(FormBuilder);
     private readonly commentService = inject(CommentService);
+    private readonly userService = inject(UserService);
 
     readonly commentForm = this.fb.group({
         content: ['', [Validators.maxLength(500)]],
@@ -58,6 +63,9 @@ export class CommentPopupComponent implements OnInit {
     private currentPage = 0;
     private readonly pageSize = 10;
     private hasMore = true;
+
+    // Cache user info để tránh gọi API trùng lặp
+    private userCache = new Map<string, UserProfile>();
 
     // Image upload
     selectedImage: File | null = null;
@@ -80,10 +88,8 @@ export class CommentPopupComponent implements OnInit {
             .subscribe({
                 next: (response: SliceResponse<CommentResponse>) => {
                     console.log('📦 Comments loaded:', response);
-                    const viewModels = response.content.map((c: CommentResponse) => this.mapToViewModel(c));
-                    this.comments.set(viewModels);
+                    this.loadUserInfoForComments(response.content, false);
                     this.hasMore = response.hasNext;
-                    this.isLoading.set(false);
                 },
                 error: (err: unknown) => {
                     console.error('❌ Error loading comments:', err);
@@ -108,12 +114,8 @@ export class CommentPopupComponent implements OnInit {
             .subscribe({
                 next: (response: SliceResponse<CommentResponse>) => {
                     console.log(`📦 Page ${this.currentPage} loaded:`, response.content?.length, 'comments');
-
-                    const viewModels = response.content.map((c: CommentResponse) => this.mapToViewModel(c));
-                    this.comments.update(list => [...list, ...viewModels]);
-
+                    this.loadUserInfoForComments(response.content, true);
                     this.hasMore = response.hasNext;
-                    this.isLoadingMore.set(false);
                 },
                 error: (err: unknown) => {
                     console.error('❌ Error loading more comments:', err);
@@ -121,6 +123,79 @@ export class CommentPopupComponent implements OnInit {
                     this.isLoadingMore.set(false);
                 },
             });
+    }
+
+    /**
+     * Load user info cho tất cả comments qua getUserById API
+     */
+    private loadUserInfoForComments(comments: CommentResponse[], append: boolean): void {
+        if (!comments || comments.length === 0) {
+            if (!append) {
+                this.comments.set([]);
+                this.isLoading.set(false);
+            } else {
+                this.isLoadingMore.set(false);
+            }
+            return;
+        }
+
+        // Lấy unique userIds chưa có trong cache
+        const userIds = [...new Set(comments.map(c => c.userId))];
+        const uncachedUserIds = userIds.filter(id => !this.userCache.has(id));
+
+        // Nếu tất cả đã có trong cache, map trực tiếp
+        if (uncachedUserIds.length === 0) {
+            const viewModels = comments.map(c => this.mapToViewModel(c));
+            if (append) {
+                this.comments.update(list => [...list, ...viewModels]);
+                this.isLoadingMore.set(false);
+            } else {
+                this.comments.set(viewModels);
+                this.isLoading.set(false);
+            }
+            return;
+        }
+
+        // Gọi API để lấy thông tin user chưa có trong cache
+        const userRequests = uncachedUserIds.map(userId =>
+            this.userService.getUserById(userId).pipe(
+                map(user => ({ userId, user })),
+                catchError(() => of({ userId, user: null }))
+            )
+        );
+
+        forkJoin(userRequests).subscribe({
+            next: (results) => {
+                // Lưu vào cache
+                results.forEach(result => {
+                    if (result.user) {
+                        this.userCache.set(result.userId, result.user);
+                    }
+                });
+
+                // Map comments với user info
+                const viewModels = comments.map(c => this.mapToViewModel(c));
+
+                if (append) {
+                    this.comments.update(list => [...list, ...viewModels]);
+                    this.isLoadingMore.set(false);
+                } else {
+                    this.comments.set(viewModels);
+                    this.isLoading.set(false);
+                }
+            },
+            error: () => {
+                // Fallback: map comments mà không có user info
+                const viewModels = comments.map(c => this.mapToViewModel(c));
+                if (append) {
+                    this.comments.update(list => [...list, ...viewModels]);
+                    this.isLoadingMore.set(false);
+                } else {
+                    this.comments.set(viewModels);
+                    this.isLoading.set(false);
+                }
+            }
+        });
     }
 
     /**
@@ -175,8 +250,16 @@ export class CommentPopupComponent implements OnInit {
             next: (comment: CommentResponse) => {
                 console.log('✅ Comment created:', comment);
 
-                // Add new comment to the top of the list
-                const newComment = this.mapToViewModel(comment);
+                // Add new comment to the top of the list (user đã biết thông tin của mình)
+                const newComment: CommentViewModel = {
+                    id: comment.id,
+                    userId: comment.userId,
+                    userName: this.currentUserName,
+                    avatarUrl: null, // Sẽ được load sau nếu cần
+                    content: comment.content,
+                    imageUrl: comment.imageUrl,
+                    createdAt: comment.createdAt,
+                };
                 this.comments.update(list => [newComment, ...list]);
 
                 // Reset form
@@ -264,12 +347,21 @@ export class CommentPopupComponent implements OnInit {
 
     /**
      * Map CommentResponse sang CommentViewModel
+     * Lấy user info từ cache (đã load qua getUserById)
      */
     private mapToViewModel(comment: CommentResponse): CommentViewModel {
+        const cachedUser = this.userCache.get(comment.userId);
+
+        // Nếu là comment của chính mình, dùng currentUserName
+        const isOwnComment = comment.userId === this.currentUserId;
+        const userName = cachedUser?.name || cachedUser?.username || (isOwnComment ? this.currentUserName : '');
+        const avatarUrl = cachedUser?.avatarUrl || null;
+
         return {
             id: comment.id,
             userId: comment.userId,
-            userName: comment.userId === this.currentUserId ? this.currentUserName : 'User',
+            userName: userName,
+            avatarUrl: avatarUrl,
             content: comment.content,
             imageUrl: comment.imageUrl,
             createdAt: comment.createdAt,

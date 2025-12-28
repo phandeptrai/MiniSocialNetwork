@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { KeycloakApiService } from '../../../features/auth/services/keycloak-api.service';
+import { UserService } from '../../../core/services/user.service';
 import { NotificationSocketService } from '../../../features/notifications/services/notification-socket.service';
 import { NotificationStateService } from '../../../features/notifications/services/notification-state.service';
 import { NotificationToastComponent } from '../notification-toast/notification-toast.component';
@@ -22,7 +23,7 @@ import { NotificationToastComponent } from '../notification-toast/notification-t
         <!-- User Profile -->
         <div class="user-profile">
           <div class="avatar">
-            <img src="https://ui-avatars.com/api/?name=User&background=667eea&color=fff" alt="avatar" />
+            <img [src]="userAvatarUrl" [alt]="userName" />
           </div>
           <div class="user-info">
             <span class="user-name">{{ userName }}</span>
@@ -332,26 +333,35 @@ import { NotificationToastComponent } from '../notification-toast/notification-t
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
   private keycloakApi = inject(KeycloakApiService);
+  private userService = inject(UserService);
   private router = inject(Router);
   private notificationSocket = inject(NotificationSocketService);
   private notificationState = inject(NotificationStateService);
 
   @ViewChild('mainContent') mainContent!: ElementRef<HTMLElement>;
 
-  userName = 'John Doe';
-  userHandle = 'johndoe';
+  userName = '';
+  userHandle = '';
+  userAvatarUrl = '';
   unreadCount = 0;
 
+  private userId = '';
   private unreadSub?: Subscription;
 
   ngOnInit(): void {
-    // Lấy thông tin user từ token
+    // Lấy userId từ token trước
     const token = this.keycloakApi.getAccessToken();
     if (token) {
       const claims = this.keycloakApi.parseToken(token);
       if (claims) {
-        this.userName = claims.name || claims.preferred_username || 'User';
-        this.userHandle = claims.preferred_username || 'user';
+        this.userId = claims.sub;
+        // Set giá trị tạm từ JWT (fallback)
+        this.userName = claims.name || claims.preferred_username || '';
+        this.userHandle = claims.preferred_username || '';
+        this.userAvatarUrl = this.generateDefaultAvatar(this.userName);
+
+        // Gọi API để lấy thông tin đầy đủ từ getUserById
+        this.loadUserProfile();
       }
     }
 
@@ -362,6 +372,34 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
     this.unreadSub = this.notificationState.getUnreadCount().subscribe(count => {
       this.unreadCount = count;
     });
+  }
+
+  /**
+   * Gọi API /api/users/{id} để lấy thông tin user đầy đủ (từ Keycloak + MySQL)
+   */
+  private loadUserProfile(): void {
+    if (!this.userId) return;
+
+    this.userService.getUserById(this.userId).subscribe({
+      next: (user) => {
+        console.log('📦 User profile loaded from API:', user);
+        this.userName = user.name || user.username || '';
+        this.userHandle = user.username || '';
+        this.userAvatarUrl = user.avatarUrl || this.generateDefaultAvatar(this.userName);
+      },
+      error: (err) => {
+        console.warn('⚠️ Failed to load user profile from API, using JWT data:', err);
+        // Giữ nguyên giá trị từ JWT nếu API fail
+      }
+    });
+  }
+
+  /**
+   * Generate default avatar URL
+   */
+  private generateDefaultAvatar(name: string): string {
+    const encodedName = encodeURIComponent(name);
+    return `https://ui-avatars.com/api/?name=${encodedName}&background=667eea&color=fff`;
   }
 
   ngOnDestroy(): void {

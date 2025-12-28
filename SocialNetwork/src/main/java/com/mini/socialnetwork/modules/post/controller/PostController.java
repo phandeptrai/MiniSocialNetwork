@@ -1,8 +1,9 @@
-package com.mini.socialnetwork.controller;
+package com.mini.socialnetwork.modules.post.controller;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +20,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.mini.socialnetwork.dto.PostResponse;
+import com.mini.socialnetwork.modules.post.dto.PostResponse;
+import com.mini.socialnetwork.modules.post.entity.Post;
+import com.mini.socialnetwork.modules.post.service.PostService;
 import com.mini.socialnetwork.dto.SliceResponse;
 import com.mini.socialnetwork.model.Notification;
-import com.mini.socialnetwork.model.Post;
 import com.mini.socialnetwork.repository.FollowRepository;
 import com.mini.socialnetwork.service.NotificationService;
-import com.mini.socialnetwork.service.PostService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,7 @@ public class PostController {
 
         List<MultipartFile> imageList = images != null ? Arrays.asList(images) : List.of();
         Post saved = postService.createPost(authorId, content, imageList);
-        PostResponse postResponse = postService.toPostResponse(saved);
+        PostResponse postResponse = PostResponse.from(saved);
 
         // Broadcast bài viết mới đến tất cả followers qua WebSocket
         try {
@@ -74,7 +75,7 @@ public class PostController {
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable String id) {
         Post post = postService.getPostById(id);
-        return ResponseEntity.ok(postService.toPostResponse(post));
+        return ResponseEntity.ok(PostResponse.from(post));
     }
 
     @GetMapping("/author/{authorId}")
@@ -84,7 +85,9 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size) {
 
         var slice = postService.getPostsByAuthor(authorId, page, size);
-        List<PostResponse> content = postService.toPostResponses(slice.getContent());
+        List<PostResponse> content = slice.getContent().stream()
+                .map(PostResponse::from)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(SliceResponse.of(content, slice.hasNext()));
     }
 
@@ -137,7 +140,7 @@ public class PostController {
             }
         }
 
-        return ResponseEntity.ok(postService.toPostResponse(post));
+        return ResponseEntity.ok(PostResponse.from(post));
     }
 
     @PutMapping("/{id}")
@@ -147,7 +150,7 @@ public class PostController {
             @RequestParam("content") String content) {
         String userId = jwt.getSubject();
         Post post = postService.updatePost(id, userId, content);
-        return ResponseEntity.ok(postService.toPostResponse(post));
+        return ResponseEntity.ok(PostResponse.from(post));
     }
 
     @DeleteMapping("/{id}")
@@ -169,7 +172,9 @@ public class PostController {
         String userId = jwt.getSubject();
 
         var slice = postService.getPostsByFollowing(userId, page, size);
-        List<PostResponse> content = postService.toPostResponses(slice.getContent());
+        List<PostResponse> content = slice.getContent().stream()
+                .map(PostResponse::from)
+                .collect(Collectors.toList());
         return ResponseEntity.ok(SliceResponse.of(content, slice.hasNext()));
     }
 }

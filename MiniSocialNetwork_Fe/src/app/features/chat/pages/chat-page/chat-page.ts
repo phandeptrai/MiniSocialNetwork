@@ -36,7 +36,7 @@ export class ChatPage implements OnInit, OnDestroy {
       if (claims) {
         const currentUser: User = {
           id: claims.sub,
-          name: claims.name || claims.preferred_username || 'User',
+          name: claims.name || claims.preferred_username || '',
           avatarUrl: claims.picture
         };
 
