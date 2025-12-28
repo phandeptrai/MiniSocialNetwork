@@ -264,7 +264,8 @@ export class PostListComponent implements OnInit {
     return {
       id: post.id,
       authorId: post.authorId,
-      authorName: authorName || this.currentUserName,
+      authorName: post.authorName || authorName || this.currentUserName,
+      authorAvatarUrl: post.authorAvatarUrl,
       createdAt: post.createdAt,
       content: post.content,
       imageUrls: post.imageUrls ?? [],

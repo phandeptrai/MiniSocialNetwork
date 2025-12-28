@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.mini.socialnetwork.model.Post;
+import com.mini.socialnetwork.model.User;
 import com.mini.socialnetwork.repository.FollowRepository;
 import com.mini.socialnetwork.repository.PostRepository;
 import com.mini.socialnetwork.repository.UserRepository;
@@ -217,5 +218,41 @@ public class PostService {
             log.error("Error deleting post: ", e);
             throw e;
         }
+    }
+
+    /**
+     * Convert a Post to PostResponse with author information
+     */
+    public com.mini.socialnetwork.dto.PostResponse toPostResponse(Post post) {
+        User author = userRepository.findById(post.getAuthorId()).orElse(null);
+        return com.mini.socialnetwork.dto.PostResponse.from(post, author);
+    }
+
+    /**
+     * Batch convert multiple Posts to PostResponses with author information.
+     * Optimized to fetch all authors in a single query.
+     */
+    public List<com.mini.socialnetwork.dto.PostResponse> toPostResponses(List<Post> posts) {
+        if (posts == null || posts.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // Collect unique author IDs
+        Set<UUID> authorIds = posts.stream()
+                .map(Post::getAuthorId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+
+        // Batch fetch all authors
+        Map<UUID, User> authorMap = userRepository.findAllById(authorIds).stream()
+                .collect(java.util.stream.Collectors.toMap(User::getId, user -> user));
+
+        // Convert posts with author info
+        return posts.stream()
+                .map(post -> {
+                    User author = post.getAuthorId() != null ? authorMap.get(post.getAuthorId()) : null;
+                    return com.mini.socialnetwork.dto.PostResponse.from(post, author);
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 }

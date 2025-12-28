@@ -50,13 +50,13 @@ public class PostController {
 
         List<MultipartFile> imageList = images != null ? Arrays.asList(images) : List.of();
         Post saved = postService.createPost(authorId, content, imageList);
-        return ResponseEntity.ok(PostResponse.from(saved));
+        return ResponseEntity.ok(postService.toPostResponse(saved));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable String id) {
         Post post = postService.getPostById(id);
-        return ResponseEntity.ok(PostResponse.from(post));
+        return ResponseEntity.ok(postService.toPostResponse(post));
     }
 
     @GetMapping("/author/{authorId}")
@@ -66,7 +66,7 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size) {
 
         var slice = postService.getPostsByAuthor(authorId, page, size);
-        List<PostResponse> content = slice.map(PostResponse::from).getContent();
+        List<PostResponse> content = postService.toPostResponses(slice.getContent());
         return ResponseEntity.ok(SliceResponse.of(content, slice.hasNext()));
     }
 
@@ -119,7 +119,7 @@ public class PostController {
             }
         }
 
-        return ResponseEntity.ok(PostResponse.from(post));
+        return ResponseEntity.ok(postService.toPostResponse(post));
     }
 
     @PutMapping("/{id}")
@@ -129,7 +129,7 @@ public class PostController {
             @RequestParam("content") String content) {
         String userId = jwt.getSubject();
         Post post = postService.updatePost(id, userId, content);
-        return ResponseEntity.ok(PostResponse.from(post));
+        return ResponseEntity.ok(postService.toPostResponse(post));
     }
 
     @DeleteMapping("/{id}")
@@ -151,7 +151,7 @@ public class PostController {
         String userId = jwt.getSubject();
 
         var slice = postService.getPostsByFollowing(userId, page, size);
-        List<PostResponse> content = slice.map(PostResponse::from).getContent();
+        List<PostResponse> content = postService.toPostResponses(slice.getContent());
         return ResponseEntity.ok(SliceResponse.of(content, slice.hasNext()));
     }
 }
