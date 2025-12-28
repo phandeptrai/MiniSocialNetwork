@@ -23,6 +23,7 @@ import com.mini.socialnetwork.dto.PostResponse;
 import com.mini.socialnetwork.dto.SliceResponse;
 import com.mini.socialnetwork.model.Notification;
 import com.mini.socialnetwork.model.Post;
+import com.mini.socialnetwork.repository.FollowRepository;
 import com.mini.socialnetwork.service.NotificationService;
 import com.mini.socialnetwork.service.PostService;
 
@@ -38,6 +39,7 @@ public class PostController {
     private final PostService postService;
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final FollowRepository followRepository;
 
     @PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
     public ResponseEntity<PostResponse> createPost(
@@ -50,7 +52,23 @@ public class PostController {
 
         List<MultipartFile> imageList = images != null ? Arrays.asList(images) : List.of();
         Post saved = postService.createPost(authorId, content, imageList);
-        return ResponseEntity.ok(postService.toPostResponse(saved));
+        PostResponse postResponse = postService.toPostResponse(saved);
+
+        // Broadcast bài viết mới đến tất cả followers qua WebSocket
+        try {
+            List<String> followerIds = followRepository.findFollowerIdsByUserId(authorId);
+            for (String followerId : followerIds) {
+                messagingTemplate.convertAndSendToUser(
+                        followerId,
+                        "/queue/feed",
+                        postResponse);
+            }
+            log.info("Broadcasted new post to {} followers", followerIds.size());
+        } catch (Exception e) {
+            log.warn("Failed to broadcast new post: {}", e.getMessage());
+        }
+
+        return ResponseEntity.ok(postResponse);
     }
 
     @GetMapping("/{id}")

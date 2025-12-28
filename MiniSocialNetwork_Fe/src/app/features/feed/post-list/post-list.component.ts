@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, signal, computed, inject, HostListener } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, signal, computed, inject, HostListener } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { PostCardComponent } from '../../../shared/components/post-card/post-card.component';
 import { CommentPopupComponent } from '../comment-popup/comment-popup.component';
 import { PostViewModel } from '../../../shared/models/post.model';
 import { PostService, PostResponse } from '../../../core/services/post.service';
 import { KeycloakApiService } from '../../auth/services/keycloak-api.service';
+import { FeedSocketService } from '../services/feed-socket.service';
 
 @Component({
   selector: 'app-post-list',
@@ -13,11 +15,12 @@ import { KeycloakApiService } from '../../auth/services/keycloak-api.service';
   templateUrl: './post-list.component.html',
   styleUrl: './post-list.component.css',
 })
-export class PostListComponent implements OnInit {
+export class PostListComponent implements OnInit, OnDestroy {
   @Input() currentUserId!: string;
 
   private readonly keycloakApi = inject(KeycloakApiService);
   private readonly postService = inject(PostService);
+  private readonly feedSocketService = inject(FeedSocketService);
 
   private readonly posts = signal<PostViewModel[]>([]);
   readonly postsVm = computed(() => this.posts());
@@ -40,9 +43,38 @@ export class PostListComponent implements OnInit {
   private hasMorePosts = true;
   private totalElements = 0;
 
+  // WebSocket subscription
+  private feedSubscription?: Subscription;
+
   ngOnInit(): void {
     this.loadCurrentUserInfo();
     this.loadPosts();
+    this.connectWebSocket();
+  }
+
+  ngOnDestroy(): void {
+    this.feedSubscription?.unsubscribe();
+    this.feedSocketService.disconnect();
+  }
+
+  /**
+   * Kết nối WebSocket để nhận bài viết mới real-time
+   */
+  private connectWebSocket(): void {
+    this.feedSocketService.connect();
+
+    this.feedSubscription = this.feedSocketService.newPost$.subscribe(post => {
+      console.log('📬 Received new post via WebSocket:', post);
+
+      // Kiểm tra xem bài viết đã tồn tại trong danh sách chưa
+      const existingPost = this.posts().find(p => p.id === post.id);
+      if (!existingPost) {
+        const viewModel = this.mapToViewModel(post);
+        this.posts.update(list => [viewModel, ...list]);
+        this.totalElements++;
+        console.log('✅ Added new post to feed');
+      }
+    });
   }
 
   /**
