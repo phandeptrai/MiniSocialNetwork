@@ -7,10 +7,6 @@ export interface AdminDashboard {
     totalUsers: number;
     totalPosts: number;
     totalComments: number;
-    totalMessages: number;
-    totalNotifications: number;
-    totalConversations: number;
-    totalFollows: number;
 }
 
 export interface UserAdmin {
@@ -53,56 +49,9 @@ export interface CommentAdmin {
     updatedAt: string;
 }
 
-export interface NotificationAdmin {
-    id: string;
-    receiverId: string;
-    receiverName: string;
-    senderId: string;
-    senderName: string;
-    type: string;
-    postId: string;
-    conversationId: string;
-    message: string;
-    isRead: boolean;
-    createdAt: string;
-}
-
-export interface FollowAdmin {
-    followerId: string;
-    followerName: string;
-    followerUsername: string;
-    followingId: string;
-    followingName: string;
-    followingUsername: string;
-    createdAt: string;
-}
-
-export interface ConversationAdmin {
-    id: number;
-    name: string;
-    type: string;
-    createdBy: string;
-    lastMessageContent: string;
-    lastMessageSenderId: string;
-    participantsCount: number;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface MessageAdmin {
-    id: number;
-    conversationId: number;
-    senderId: string;
-    senderName: string;
-    content: string;
-    messageType: string;
-    isDeleted: boolean;
-    createdAt: string;
-    attachmentsCount: number;
-}
-
 /**
  * Service để gọi Admin API endpoints
+ * Quản lý Users, Posts, Comments
  */
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -155,47 +104,5 @@ export class AdminService {
 
     deleteComment(id: string): Observable<any> {
         return this.http.delete(`${this.apiUrl}/comments/${id}`);
-    }
-
-    // Notifications
-    getAllNotifications(): Observable<NotificationAdmin[]> {
-        return this.http.get<NotificationAdmin[]>(`${this.apiUrl}/notifications`);
-    }
-
-    deleteNotification(id: string): Observable<any> {
-        return this.http.delete(`${this.apiUrl}/notifications/${id}`);
-    }
-
-    // Follows
-    getAllFollows(): Observable<FollowAdmin[]> {
-        return this.http.get<FollowAdmin[]>(`${this.apiUrl}/follows`);
-    }
-
-    deleteFollow(followerId: string, followingId: string): Observable<any> {
-        return this.http.delete(`${this.apiUrl}/follows`, {
-            params: { followerId, followingId }
-        });
-    }
-
-    // Conversations
-    getAllConversations(): Observable<ConversationAdmin[]> {
-        return this.http.get<ConversationAdmin[]>(`${this.apiUrl}/conversations`);
-    }
-
-    deleteConversation(id: number): Observable<any> {
-        return this.http.delete(`${this.apiUrl}/conversations/${id}`);
-    }
-
-    // Messages
-    getAllMessages(): Observable<MessageAdmin[]> {
-        return this.http.get<MessageAdmin[]>(`${this.apiUrl}/messages`);
-    }
-
-    getMessagesByConversation(conversationId: number): Observable<MessageAdmin[]> {
-        return this.http.get<MessageAdmin[]>(`${this.apiUrl}/messages/conversation/${conversationId}`);
-    }
-
-    deleteMessage(id: number): Observable<any> {
-        return this.http.delete(`${this.apiUrl}/messages/${id}`);
     }
 }

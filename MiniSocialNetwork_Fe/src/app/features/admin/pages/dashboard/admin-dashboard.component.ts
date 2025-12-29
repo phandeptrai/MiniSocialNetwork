@@ -4,10 +4,10 @@ import { RouterModule } from '@angular/router';
 import { AdminService, AdminDashboard } from '../../services/admin.service';
 
 @Component({
-    selector: 'app-admin-dashboard',
-    standalone: true,
-    imports: [CommonModule, RouterModule],
-    template: `
+  selector: 'app-admin-dashboard',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
     <div class="dashboard">
       <h1 class="page-title">📊 Dashboard</h1>
       <p class="page-subtitle">Tổng quan hệ thống Mini Social Network</p>
@@ -36,38 +36,6 @@ import { AdminService, AdminDashboard } from '../../services/admin.service';
             <span class="stat-label">Comments</span>
           </div>
         </div>
-
-        <div class="stat-card notifications" routerLink="/admin/notifications">
-          <div class="stat-icon">🔔</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ dashboard.totalNotifications }}</span>
-            <span class="stat-label">Notifications</span>
-          </div>
-        </div>
-
-        <div class="stat-card follows" routerLink="/admin/follows">
-          <div class="stat-icon">🤝</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ dashboard.totalFollows }}</span>
-            <span class="stat-label">Follows</span>
-          </div>
-        </div>
-
-        <div class="stat-card conversations" routerLink="/admin/conversations">
-          <div class="stat-icon">💭</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ dashboard.totalConversations }}</span>
-            <span class="stat-label">Conversations</span>
-          </div>
-        </div>
-
-        <div class="stat-card messages" routerLink="/admin/messages">
-          <div class="stat-icon">✉️</div>
-          <div class="stat-info">
-            <span class="stat-value">{{ dashboard.totalMessages }}</span>
-            <span class="stat-label">Messages</span>
-          </div>
-        </div>
       </div>
 
       <div class="loading" *ngIf="loading">
@@ -79,7 +47,7 @@ import { AdminService, AdminDashboard } from '../../services/admin.service';
       </div>
     </div>
   `,
-    styles: [`
+  styles: [`
     .dashboard {
       max-width: 1200px;
     }
@@ -98,15 +66,15 @@ import { AdminService, AdminDashboard } from '../../services/admin.service';
 
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
     }
 
     .stat-card {
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(10px);
       border-radius: 16px;
-      padding: 24px;
+      padding: 28px;
       display: flex;
       align-items: center;
       gap: 20px;
@@ -122,13 +90,13 @@ import { AdminService, AdminDashboard } from '../../services/admin.service';
     }
 
     .stat-icon {
-      font-size: 40px;
-      width: 60px;
-      height: 60px;
+      font-size: 48px;
+      width: 72px;
+      height: 72px;
       display: flex;
       align-items: center;
       justify-content: center;
-      border-radius: 12px;
+      border-radius: 16px;
       background: linear-gradient(135deg, rgba(102, 126, 234, 0.3), rgba(118, 75, 162, 0.3));
     }
 
@@ -138,14 +106,14 @@ import { AdminService, AdminDashboard } from '../../services/admin.service';
     }
 
     .stat-value {
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 700;
       color: #fff;
     }
 
     .stat-label {
       color: rgba(255, 255, 255, 0.6);
-      font-size: 14px;
+      font-size: 16px;
     }
 
     .loading, .error {
@@ -163,37 +131,33 @@ import { AdminService, AdminDashboard } from '../../services/admin.service';
     .stat-card.users .stat-icon { background: linear-gradient(135deg, #667eea, #764ba2); }
     .stat-card.posts .stat-icon { background: linear-gradient(135deg, #f093fb, #f5576c); }
     .stat-card.comments .stat-icon { background: linear-gradient(135deg, #4facfe, #00f2fe); }
-    .stat-card.notifications .stat-icon { background: linear-gradient(135deg, #43e97b, #38f9d7); }
-    .stat-card.follows .stat-icon { background: linear-gradient(135deg, #fa709a, #fee140); }
-    .stat-card.conversations .stat-icon { background: linear-gradient(135deg, #a8edea, #fed6e3); }
-    .stat-card.messages .stat-icon { background: linear-gradient(135deg, #d299c2, #fef9d7); }
   `]
 })
 export class AdminDashboardComponent implements OnInit {
-    private adminService = inject(AdminService);
+  private adminService = inject(AdminService);
 
-    dashboard: AdminDashboard | null = null;
-    loading = false;
-    error = '';
+  dashboard: AdminDashboard | null = null;
+  loading = false;
+  error = '';
 
-    ngOnInit(): void {
-        this.loadDashboard();
-    }
+  ngOnInit(): void {
+    this.loadDashboard();
+  }
 
-    loadDashboard(): void {
-        this.loading = true;
-        this.error = '';
+  loadDashboard(): void {
+    this.loading = true;
+    this.error = '';
 
-        this.adminService.getDashboard().subscribe({
-            next: (data) => {
-                this.dashboard = data;
-                this.loading = false;
-            },
-            error: (err) => {
-                console.error('Failed to load dashboard:', err);
-                this.error = 'Failed to load dashboard data. Please try again.';
-                this.loading = false;
-            }
-        });
-    }
+    this.adminService.getDashboard().subscribe({
+      next: (data) => {
+        this.dashboard = data;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load dashboard:', err);
+        this.error = 'Failed to load dashboard data. Please try again.';
+        this.loading = false;
+      }
+    });
+  }
 }

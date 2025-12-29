@@ -1,14 +1,8 @@
 package com.mini.socialnetwork.modules.admin.service;
 
-import com.mini.socialnetwork.model.Follow;
-import com.mini.socialnetwork.model.FollowId;
-import com.mini.socialnetwork.model.Notification;
 import com.mini.socialnetwork.model.User;
 import com.mini.socialnetwork.modules.admin.dto.*;
 import com.mini.socialnetwork.modules.auth.service.KeycloakAdminService;
-import com.mini.socialnetwork.modules.chat.entity.Conversation;
-import com.mini.socialnetwork.modules.chat.entity.Message;
-import com.mini.socialnetwork.modules.chat.repository.ConversationRepository;
 import com.mini.socialnetwork.modules.chat.repository.MessageRepository;
 import com.mini.socialnetwork.modules.comment.entity.Comment;
 import com.mini.socialnetwork.modules.comment.repository.CommentRepository;
@@ -19,9 +13,6 @@ import com.mini.socialnetwork.repository.NotificationRepository;
 import com.mini.socialnetwork.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,12 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * Service xử lý business logic cho Admin panel
+ * Quản lý Users, Posts, Comments
  */
 @Slf4j
 @Service
@@ -46,7 +37,6 @@ public class AdminService {
     private final CommentRepository commentRepository;
     private final NotificationRepository notificationRepository;
     private final FollowRepository followRepository;
-    private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final KeycloakAdminService keycloakAdminService;
 
@@ -59,10 +49,6 @@ public class AdminService {
                 .totalUsers(userRepository.count())
                 .totalPosts(postRepository.count())
                 .totalComments(commentRepository.count())
-                .totalNotifications(notificationRepository.count())
-                .totalFollows(followRepository.count())
-                .totalConversations(conversationRepository.count())
-                .totalMessages(messageRepository.count())
                 .build();
     }
 
@@ -97,14 +83,82 @@ public class AdminService {
         return toUserAdminDto(userRepository.save(user));
     }
 
+    /**
+     * Xóa hoàn toàn user và tất cả nội dung liên quan:
+     * - Posts của user
+     * - Comments của user
+     * - Messages của user
+     * - Notifications liên quan đến user
+     * - Follow relationships
+     * - User từ Keycloak
+     * - User từ MySQL
+     */
     @Transactional
     public void deleteUser(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found: " + id));
-        user.setActive(false);
-        user.setUpdatedAt(Instant.now());
-        userRepository.save(user);
-        log.info("Deactivated user: {}", id);
+
+        String userId = id.toString();
+        log.info("Starting complete deletion of user: {} ({})", user.getUsername(), id);
+
+        // 1. Xóa tất cả comments của user
+        try {
+            commentRepository.deleteByUserId(id);
+            log.info("Deleted all comments by user: {}", id);
+        } catch (Exception e) {
+            log.warn("Error deleting comments: {}", e.getMessage());
+        }
+
+        // 2. Lấy tất cả posts của user và xóa comments trên các posts đó
+        try {
+            List<Post> userPosts = postRepository.findByAuthorId(id);
+            for (Post post : userPosts) {
+                commentRepository.deleteByPostId(post.getId());
+            }
+            // Xóa tất cả posts của user
+            postRepository.deleteByAuthorId(id);
+            log.info("Deleted {} posts by user: {}", userPosts.size(), id);
+        } catch (Exception e) {
+            log.warn("Error deleting posts: {}", e.getMessage());
+        }
+
+        // 3. Xóa tất cả messages của user
+        try {
+            messageRepository.deleteBySenderId(userId);
+            log.info("Deleted all messages by user: {}", id);
+        } catch (Exception e) {
+            log.warn("Error deleting messages: {}", e.getMessage());
+        }
+
+        // 4. Xóa tất cả notifications liên quan đến user
+        try {
+            notificationRepository.deleteByReceiverId(id);
+            notificationRepository.deleteBySenderId(id);
+            log.info("Deleted all notifications related to user: {}", id);
+        } catch (Exception e) {
+            log.warn("Error deleting notifications: {}", e.getMessage());
+        }
+
+        // 5. Xóa tất cả follow relationships
+        try {
+            followRepository.deleteByFollowId_FollowerId(userId);
+            followRepository.deleteByFollowId_FollowingId(userId);
+            log.info("Deleted all follow relationships for user: {}", id);
+        } catch (Exception e) {
+            log.warn("Error deleting follows: {}", e.getMessage());
+        }
+
+        // 6. Xóa user khỏi Keycloak
+        try {
+            keycloakAdminService.deleteUser(userId);
+            log.info("Deleted user from Keycloak: {}", id);
+        } catch (Exception e) {
+            log.warn("Failed to delete user from Keycloak (may already be deleted): {}", e.getMessage());
+        }
+
+        // 7. Xóa user khỏi MySQL
+        userRepository.delete(user);
+        log.info("Permanently deleted user and all related content: {} ({})", user.getUsername(), id);
     }
 
     private UserAdminDto toUserAdminDto(User user) {
@@ -165,9 +219,6 @@ public class AdminService {
         String authorName = "";
         String authorUsername = "";
         if (post.getAuthorId() != null) {
-            userRepository.findById(post.getAuthorId()).ifPresent(user -> {
-                // Using local variables, need to set via builder
-            });
             var author = userRepository.findById(post.getAuthorId()).orElse(null);
             if (author != null) {
                 authorName = author.getName();
@@ -248,196 +299,6 @@ public class AdminService {
                 .isDeleted(comment.isDeleted())
                 .createdAt(formatInstant(comment.getCreatedAt()))
                 .updatedAt(formatInstant(comment.getUpdatedAt()))
-                .build();
-    }
-
-    // ==================== NOTIFICATION MANAGEMENT ====================
-
-    public List<NotificationAdminDto> getAllNotifications() {
-        return notificationRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
-                .map(this::toNotificationAdminDto)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void deleteNotification(UUID id) {
-        notificationRepository.deleteById(id);
-        log.info("Deleted notification: {}", id);
-    }
-
-    private NotificationAdminDto toNotificationAdminDto(Notification notification) {
-        String receiverName = "";
-        if (notification.getReceiverId() != null) {
-            var receiver = userRepository.findById(notification.getReceiverId()).orElse(null);
-            if (receiver != null) {
-                receiverName = receiver.getName();
-            }
-        }
-
-        return NotificationAdminDto.builder()
-                .id(notification.getId())
-                .receiverId(notification.getReceiverId())
-                .receiverName(receiverName)
-                .senderId(notification.getSenderId())
-                .senderName(notification.getSenderName())
-                .type(notification.getType() != null ? notification.getType().name() : null)
-                .postId(notification.getPostId())
-                .conversationId(notification.getConversationId())
-                .message(notification.getMessage())
-                .isRead(notification.isRead())
-                .createdAt(formatInstant(notification.getCreatedAt()))
-                .build();
-    }
-
-    // ==================== FOLLOW MANAGEMENT ====================
-
-    public List<FollowAdminDto> getAllFollows() {
-        return followRepository.findAll().stream()
-                .map(this::toFollowAdminDto)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void deleteFollow(String followerId, String followingId) {
-        followRepository.deleteByFollowId_FollowerIdAndFollowId_FollowingId(followerId, followingId);
-        log.info("Deleted follow relationship: {} -> {}", followerId, followingId);
-    }
-
-    private FollowAdminDto toFollowAdminDto(Follow follow) {
-        String followerName = "";
-        String followerUsername = "";
-        String followingName = "";
-        String followingUsername = "";
-
-        try {
-            UUID followerId = UUID.fromString(follow.getFollowId().getFollowerId());
-            var follower = userRepository.findById(followerId).orElse(null);
-            if (follower != null) {
-                followerName = follower.getName();
-                followerUsername = follower.getUsername();
-            }
-        } catch (Exception e) {
-            // FollowerId might be Keycloak ID stored as string, try to get from Keycloak
-            try {
-                var keycloakUser = keycloakAdminService.getUserById(follow.getFollowId().getFollowerId());
-                if (keycloakUser != null) {
-                    followerName = (String) keycloakUser.getOrDefault("firstName", "") + " "
-                            + keycloakUser.getOrDefault("lastName", "");
-                    followerUsername = (String) keycloakUser.getOrDefault("username", "");
-                }
-            } catch (Exception ex) {
-                log.debug("Could not fetch follower info: {}", ex.getMessage());
-            }
-        }
-
-        try {
-            UUID followingId = UUID.fromString(follow.getFollowId().getFollowingId());
-            var following = userRepository.findById(followingId).orElse(null);
-            if (following != null) {
-                followingName = following.getName();
-                followingUsername = following.getUsername();
-            }
-        } catch (Exception e) {
-            try {
-                var keycloakUser = keycloakAdminService.getUserById(follow.getFollowId().getFollowingId());
-                if (keycloakUser != null) {
-                    followingName = (String) keycloakUser.getOrDefault("firstName", "") + " "
-                            + keycloakUser.getOrDefault("lastName", "");
-                    followingUsername = (String) keycloakUser.getOrDefault("username", "");
-                }
-            } catch (Exception ex) {
-                log.debug("Could not fetch following info: {}", ex.getMessage());
-            }
-        }
-
-        return FollowAdminDto.builder()
-                .followerId(follow.getFollowId().getFollowerId())
-                .followerName(followerName.trim())
-                .followerUsername(followerUsername)
-                .followingId(follow.getFollowId().getFollowingId())
-                .followingName(followingName.trim())
-                .followingUsername(followingUsername)
-                .createdAt(follow.getCreatedAt() != null ? follow.getCreatedAt().toString() : null)
-                .build();
-    }
-
-    // ==================== CONVERSATION MANAGEMENT ====================
-
-    public List<ConversationAdminDto> getAllConversations() {
-        return conversationRepository.findAll(Sort.by(Sort.Direction.DESC, "updatedAt")).stream()
-                .map(this::toConversationAdminDto)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void deleteConversation(Long id) {
-        conversationRepository.deleteById(id);
-        log.info("Deleted conversation: {}", id);
-    }
-
-    private ConversationAdminDto toConversationAdminDto(Conversation conversation) {
-        return ConversationAdminDto.builder()
-                .id(conversation.getId())
-                .name(conversation.getName())
-                .type(conversation.getType() != null ? conversation.getType().name() : null)
-                .createdBy(conversation.getCreatedBy())
-                .lastMessageContent(conversation.getLastMessageContent())
-                .lastMessageSenderId(conversation.getLastMessageSenderId())
-                .participantsCount(
-                        conversation.getParticipantIds() != null ? conversation.getParticipantIds().size() : 0)
-                .createdAt(formatInstant(conversation.getCreatedAt()))
-                .updatedAt(formatInstant(conversation.getUpdatedAt()))
-                .build();
-    }
-
-    // ==================== MESSAGE MANAGEMENT ====================
-
-    public List<MessageAdminDto> getAllMessages() {
-        Pageable pageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return messageRepository.findAll(pageable).stream()
-                .map(this::toMessageAdminDto)
-                .collect(Collectors.toList());
-    }
-
-    public List<MessageAdminDto> getMessagesByConversation(Long conversationId) {
-        Pageable pageable = PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "id"));
-        return messageRepository.findByConversationIdOrderByIdDesc(conversationId, pageable).stream()
-                .map(this::toMessageAdminDto)
-                .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public void deleteMessage(Long id) {
-        Message message = messageRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Message not found: " + id));
-        message.setDeleted(true);
-        message.setContent("This message has been deleted by admin.");
-        messageRepository.save(message);
-        log.info("Soft deleted message: {}", id);
-    }
-
-    private MessageAdminDto toMessageAdminDto(Message message) {
-        String senderName = "";
-        try {
-            var keycloakUser = keycloakAdminService.getUserById(message.getSenderId());
-            if (keycloakUser != null) {
-                senderName = (String) keycloakUser.getOrDefault("firstName", "") + " "
-                        + keycloakUser.getOrDefault("lastName", "");
-            }
-        } catch (Exception e) {
-            log.debug("Could not fetch sender info: {}", e.getMessage());
-        }
-
-        return MessageAdminDto.builder()
-                .id(message.getId())
-                .conversationId(message.getConversationId())
-                .senderId(message.getSenderId())
-                .senderName(senderName.trim())
-                .content(message.getContent())
-                .messageType(message.getMessageType() != null ? message.getMessageType().name() : null)
-                .isDeleted(message.isDeleted())
-                .createdAt(formatInstant(message.getCreatedAt()))
-                .attachmentsCount(message.getAttachments() != null ? message.getAttachments().size() : 0)
                 .build();
     }
 

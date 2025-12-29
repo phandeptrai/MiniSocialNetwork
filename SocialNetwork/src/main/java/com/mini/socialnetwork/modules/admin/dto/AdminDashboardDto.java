@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * DTO cho Dashboard thống kê admin
+ * Chỉ bao gồm Users, Posts, Comments
  */
 @Data
 @Builder
@@ -16,8 +17,4 @@ public class AdminDashboardDto {
     private long totalUsers;
     private long totalPosts;
     private long totalComments;
-    private long totalMessages;
-    private long totalNotifications;
-    private long totalConversations;
-    private long totalFollows;
 }

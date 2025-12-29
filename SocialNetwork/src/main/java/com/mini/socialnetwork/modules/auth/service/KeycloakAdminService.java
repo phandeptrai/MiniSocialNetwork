@@ -173,4 +173,34 @@ public class KeycloakAdminService {
         }
         return users;
     }
+
+    /**
+     * Xóa user khỏi Keycloak
+     * 
+     * @param userId ID của user trong Keycloak
+     */
+    public void deleteUser(String userId) {
+        String adminToken = getAdminToken();
+        String userUrl = keycloakUrl + "/admin/realms/" + realm + "/users/" + userId;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(adminToken);
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Void> response = restTemplate.exchange(
+                    userUrl,
+                    HttpMethod.DELETE,
+                    request,
+                    Void.class);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Failed to delete user from Keycloak: " + response.getStatusCode());
+            }
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            // User already deleted or not found, ignore
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete user from Keycloak: " + e.getMessage());
+        }
+    }
 }

@@ -2,6 +2,8 @@ package com.mini.socialnetwork.modules.chat.repository;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.mini.socialnetwork.modules.chat.entity.Message;
 
@@ -34,7 +36,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      * </p>
      *
      * @param conversationId ID của cuộc hội thoại
-     * @param pageable thông tin phân trang (size)
+     * @param pageable       thông tin phân trang (size)
      * @return danh sách tin nhắn mới nhất trong conversation
      */
     List<Message> findByConversationIdOrderByIdDesc(Long conversationId, Pageable pageable);
@@ -47,9 +49,16 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      * </p>
      *
      * @param conversationId ID của cuộc hội thoại
-     * @param cursorId ID của tin nhắn cuối cùng từ lần load trước
-     * @param pageable thông tin phân trang (size)
+     * @param cursorId       ID của tin nhắn cuối cùng từ lần load trước
+     * @param pageable       thông tin phân trang (size)
      * @return danh sách tin nhắn có ID nhỏ hơn cursor (cũ hơn)
      */
     List<Message> findByConversationIdAndIdLessThanOrderByIdDesc(Long conversationId, Long cursorId, Pageable pageable);
+
+    /**
+     * Xóa tất cả messages của một sender
+     */
+    @Modifying
+    @Transactional
+    void deleteBySenderId(String senderId);
 }

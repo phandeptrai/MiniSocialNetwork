@@ -4,10 +4,10 @@ import { RouterModule } from '@angular/router';
 import { KeycloakApiService } from '../../../auth/services/keycloak-api.service';
 
 @Component({
-    selector: 'app-admin-layout',
-    standalone: true,
-    imports: [CommonModule, RouterModule],
-    template: `
+  selector: 'app-admin-layout',
+  standalone: true,
+  imports: [CommonModule, RouterModule],
+  template: `
     <div class="admin-layout">
       <!-- Admin Sidebar -->
       <aside class="admin-sidebar">
@@ -32,22 +32,6 @@ import { KeycloakApiService } from '../../../auth/services/keycloak-api.service'
             <span class="icon">💬</span>
             <span>Comments</span>
           </a>
-          <a routerLink="/admin/notifications" routerLinkActive="active" class="nav-item">
-            <span class="icon">🔔</span>
-            <span>Notifications</span>
-          </a>
-          <a routerLink="/admin/follows" routerLinkActive="active" class="nav-item">
-            <span class="icon">🤝</span>
-            <span>Follows</span>
-          </a>
-          <a routerLink="/admin/conversations" routerLinkActive="active" class="nav-item">
-            <span class="icon">💭</span>
-            <span>Conversations</span>
-          </a>
-          <a routerLink="/admin/messages" routerLinkActive="active" class="nav-item">
-            <span class="icon">✉️</span>
-            <span>Messages</span>
-          </a>
         </nav>
 
         <div class="sidebar-footer">
@@ -64,7 +48,7 @@ import { KeycloakApiService } from '../../../auth/services/keycloak-api.service'
       </main>
     </div>
   `,
-    styles: [`
+  styles: [`
     .admin-layout {
       display: flex;
       min-height: 100vh;
