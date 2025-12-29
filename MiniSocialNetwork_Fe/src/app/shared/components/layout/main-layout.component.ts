@@ -58,6 +58,14 @@ import { NotificationToastComponent } from '../notification-toast/notification-t
           </a>
         </nav>
 
+        <!-- Admin Link (only for admins) -->
+        <div class="admin-section" *ngIf="isAdmin">
+          <a routerLink="/admin" class="nav-item admin-link">
+            <span class="nav-icon">⚙️</span>
+            <span class="nav-text">Admin Panel</span>
+          </a>
+        </div>
+
         <!-- Sign Out -->
         <div class="sidebar-footer">
           <button class="sign-out-btn" (click)="signOut()">
@@ -329,6 +337,20 @@ import { NotificationToastComponent } from '../notification-toast/notification-t
         display: none;
       }
     }
+    /* Admin section */
+    .admin-section {
+      padding: 8px 12px;
+      border-top: 1px solid #f0f2f5;
+    }
+
+    .admin-link {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff !important;
+    }
+
+    .admin-link:hover {
+      background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+    }
   `]
 })
 export class MainLayoutComponent implements OnInit, OnDestroy {
@@ -347,6 +369,10 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   private userId = '';
   private unreadSub?: Subscription;
+
+  get isAdmin(): boolean {
+    return this.keycloakApi.isAdmin();
+  }
 
   ngOnInit(): void {
     // Lấy userId từ token trước
