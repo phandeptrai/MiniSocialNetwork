@@ -45,6 +45,14 @@
             </a>
         </nav>
 
+        <!-- Admin Link (only for admins) -->
+        <div class="admin-section" *ngIf="isAdmin">
+            <a routerLink="/admin" class="nav-item admin-link">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-text">Admin Panel</span>
+            </a>
+        </div>
+
         <!-- Sign Out -->
         <div class="sidebar-footer">
             <button class="sign-out-btn" (click)="signOut()">

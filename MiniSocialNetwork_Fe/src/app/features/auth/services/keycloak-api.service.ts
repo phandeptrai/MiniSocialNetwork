@@ -219,4 +219,41 @@ export class KeycloakApiService {
       return null;
     }
   }
+
+  /**
+   * Kiểm tra user có role cụ thể không
+   */
+  hasRole(role: string): boolean {
+    const token = this.getAccessToken();
+    if (!token) return false;
+    
+    const claims = this.parseToken(token);
+    if (!claims || !claims.realm_access || !claims.realm_access.roles) {
+      return false;
+    }
+    
+    return claims.realm_access.roles.includes(role);
+  }
+
+  /**
+   * Kiểm tra user có phải admin không
+   */
+  isAdmin(): boolean {
+    return this.hasRole('admin');
+  }
+
+  /**
+   * Lấy danh sách roles của user
+   */
+  getRoles(): string[] {
+    const token = this.getAccessToken();
+    if (!token) return [];
+    
+    const claims = this.parseToken(token);
+    if (!claims || !claims.realm_access || !claims.realm_access.roles) {
+      return [];
+    }
+    
+    return claims.realm_access.roles;
+  }
 }

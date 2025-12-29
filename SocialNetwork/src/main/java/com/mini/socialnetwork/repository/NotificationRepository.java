@@ -5,7 +5,9 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.mini.socialnetwork.model.Notification;
 
@@ -40,4 +42,18 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
      * @return danh sách notifications chưa đọc
      */
     java.util.List<Notification> findByReceiverIdAndIsReadFalse(UUID receiverId);
+
+    /**
+     * Xóa tất cả notifications mà user là người nhận
+     */
+    @Modifying
+    @Transactional
+    void deleteByReceiverId(UUID receiverId);
+
+    /**
+     * Xóa tất cả notifications mà user là người gửi
+     */
+    @Modifying
+    @Transactional
+    void deleteBySenderId(UUID senderId);
 }

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth-guard';
+import { adminGuard } from './features/admin/guards/admin-guard';
 
 // Auth pages (no layout)
 import { LoginPage } from './features/auth/pages/login-page/login-page';
@@ -26,6 +27,13 @@ export const routes: Routes = [
   {
     path: 'register',
     component: RegisterPage
+  },
+
+  // Admin routes (separate layout, lazy loaded)
+  {
+    path: 'admin',
+    canActivate: [authGuard, adminGuard],
+    loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES)
   },
 
   // Main app routes (with sidebar layout)
@@ -72,3 +80,4 @@ export const routes: Routes = [
     redirectTo: 'feed'
   }
 ];
+

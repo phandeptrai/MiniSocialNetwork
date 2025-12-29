@@ -32,6 +32,10 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   private userId = '';
   private unreadSub?: Subscription;
 
+  get isAdmin(): boolean {
+    return this.keycloakApi.isAdmin();
+  }
+
   ngOnInit(): void {
     // Lấy userId từ token trước
     const token = this.keycloakApi.getAccessToken();

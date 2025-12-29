@@ -288,3 +288,21 @@
         display: none;
     }
 }
+
+/* ==================== */
+/* Admin Section */
+/* ==================== */
+
+.admin-section {
+    padding: 8px 12px;
+    border-top: 1px solid #f0f2f5;
+}
+
+.admin-link {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff !important;
+}
+
+.admin-link:hover {
+    background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%);
+}
