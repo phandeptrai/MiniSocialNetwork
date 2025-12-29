@@ -53,6 +53,15 @@
   display: block;
 }
 
+.clickable-image {
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.clickable-image:hover {
+  filter: brightness(0.92);
+}
+
 .layout-1 {
   border-radius: 10px;
   overflow: hidden;

@@ -49,14 +49,15 @@
     <!-- 1 image -->
     <ng-container *ngSwitchCase="1">
       <div class="layout-1">
-        <img [src]="post.imageUrls[0]" alt="post image" />
+        <img [src]="post.imageUrls[0]" alt="post image" class="clickable-image" (click)="openLightbox(0)" />
       </div>
     </ng-container>
 
     <!-- 2 images -->
     <ng-container *ngSwitchCase="2">
       <div class="layout-2">
-        <img *ngFor="let url of post.imageUrls" [src]="url" alt="post image" />
+        <img *ngFor="let url of post.imageUrls; let i = index" [src]="url" alt="post image" class="clickable-image"
+          (click)="openLightbox(i)" />
       </div>
     </ng-container>
 
@@ -64,11 +65,11 @@
     <ng-container *ngSwitchCase="3">
       <div class="layout-3">
         <div class="main">
-          <img [src]="post.imageUrls[0]" alt="post image" />
+          <img [src]="post.imageUrls[0]" alt="post image" class="clickable-image" (click)="openLightbox(0)" />
         </div>
         <div class="side">
-          <img [src]="post.imageUrls[1]" alt="post image" />
-          <img [src]="post.imageUrls[2]" alt="post image" />
+          <img [src]="post.imageUrls[1]" alt="post image" class="clickable-image" (click)="openLightbox(1)" />
+          <img [src]="post.imageUrls[2]" alt="post image" class="clickable-image" (click)="openLightbox(2)" />
         </div>
       </div>
     </ng-container>
@@ -76,10 +77,15 @@
     <!-- 4 images -->
     <ng-container *ngSwitchCase="4">
       <div class="layout-4">
-        <img *ngFor="let url of post.imageUrls" [src]="url" alt="post image" />
+        <img *ngFor="let url of post.imageUrls; let i = index" [src]="url" alt="post image" class="clickable-image"
+          (click)="openLightbox(i)" />
       </div>
     </ng-container>
   </div>
+
+  <!-- Image Lightbox -->
+  <app-image-lightbox [images]="post.imageUrls || []" [isOpen]="isLightboxOpen()" [startIndex]="lightboxStartIndex"
+    (closed)="closeLightbox()"></app-image-lightbox>
 
   <!-- Actions: like & comment counts -->
   <div class="post-actions">

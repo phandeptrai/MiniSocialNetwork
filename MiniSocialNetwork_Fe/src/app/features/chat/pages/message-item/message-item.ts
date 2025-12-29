@@ -5,10 +5,11 @@ import { ChatStateService } from '../../services/chat-state.service';
 import { ChatSocketService } from '../../services/chat-socket.service';
 import { CommonModule } from '@angular/common';
 import { UserService } from '../../../../core/services/user.service';
+import { ImageLightboxComponent } from '../../../../shared/components/image-lightbox/image-lightbox.component';
 
 @Component({
   selector: 'app-message-item',
-  imports: [CommonModule],
+  imports: [CommonModule, ImageLightboxComponent],
   templateUrl: './message-item.html',
   styleUrl: './message-item.css',
 })
@@ -19,6 +20,11 @@ export class MessageItem implements OnInit {
   currentUser: User | null = null;
   senderAvatarUrl: string | null = null;
   senderName: string | null = null;
+
+  // Lightbox state
+  isLightboxOpen = false;
+  lightboxImages: string[] = [];
+  lightboxStartIndex = 0;
 
   constructor(private chatState: ChatStateService, private chatSocket: ChatSocketService, private userService: UserService) { }
 
@@ -49,4 +55,28 @@ export class MessageItem implements OnInit {
       this.chatSocket.requestDeleteMessage(this.message.id);
     }
   }
+
+  /**
+   * Mở lightbox để xem hình ảnh phóng to
+   */
+  openLightbox(imageUrl: string): void {
+    // Collect all image attachments from the message
+    this.lightboxImages = (this.message.attachments
+      ?.filter(att => this.isImage(att.fileType))
+      .map(att => att.fileUrl)
+      .filter((url): url is string => !!url)) || [];
+
+    // Find the index of the clicked image
+    this.lightboxStartIndex = this.lightboxImages.indexOf(imageUrl);
+    if (this.lightboxStartIndex === -1) {
+      this.lightboxStartIndex = 0;
+    }
+
+    this.isLightboxOpen = true;
+  }
+
+  closeLightbox(): void {
+    this.isLightboxOpen = false;
+  }
 }
+

@@ -2,11 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, computed, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PostViewModel } from '../../models/post.model';
+import { ImageLightboxComponent } from '../image-lightbox/image-lightbox.component';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ImageLightboxComponent],
   templateUrl: './post-card.component.html',
   styleUrl: './post-card.component.css',
 })
@@ -87,5 +88,18 @@ export class PostCardComponent implements OnChanges {
       this.delete.emit();
     }
     this.closeMenu();
+  }
+
+  // Lightbox state
+  readonly isLightboxOpen = signal(false);
+  lightboxStartIndex = 0;
+
+  openLightbox(index: number): void {
+    this.lightboxStartIndex = index;
+    this.isLightboxOpen.set(true);
+  }
+
+  closeLightbox(): void {
+    this.isLightboxOpen.set(false);
   }
 }
