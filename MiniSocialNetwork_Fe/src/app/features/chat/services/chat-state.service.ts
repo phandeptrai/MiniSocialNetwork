@@ -168,6 +168,7 @@ export class ChatStateService {
         content: '' // Xóa nội dung
       };
       this.messages$.next({ ...currentMessagesState, [conversationId]: updatedMessages });
+      this.updateConversationPreview(conversationId, updatedMessages[messageIndex]);
     }
   }
 
@@ -179,7 +180,7 @@ export class ChatStateService {
     if (convIndex > -1) {
       const updatedConv = {
         ...currentConversations[convIndex],
-        lastMessageContent: message.content,
+        lastMessageContent: message.content || 'This message has been deleted.',
         lastMessageSenderId: message.senderId,
         lastMessageType: message.messageType,
         updatedAt: message.createdAt

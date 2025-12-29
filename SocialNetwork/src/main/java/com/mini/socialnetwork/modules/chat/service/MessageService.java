@@ -211,6 +211,13 @@ public class MessageService {
             message.getAttachments().clear();
         }
 
+        Conversation conversation = conversationRepository.findById(message.getConversationId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conversation not found"));
+        conversation.setLastMessageContent("This message has been deleted.");
+        conversation.setLastMessageSenderId(userId);
+        conversation.setLastMessageType(Message.MessageType.TEXT);
+        conversation.setUpdatedAt(message.getCreatedAt());
+        conversationRepository.save(conversation);
         return messageRepository.save(message);
     }
 
