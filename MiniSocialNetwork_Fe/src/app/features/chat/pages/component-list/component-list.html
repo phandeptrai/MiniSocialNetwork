@@ -5,7 +5,14 @@
       <circle cx="11" cy="11" r="8"></circle>
       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
     </svg>
-    <input type="text" placeholder="Search conversations..." class="search-input" />
+    <input type="text" placeholder="Tìm kiếm cuộc trò chuyện..." class="search-input" [value]="searchQuery"
+      (input)="onSearchChange($event)" />
+    <button class="clear-search-btn" *ngIf="searchQuery" (click)="clearSearch()" title="Xóa tìm kiếm">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
   </div>
 
   <!-- Loading state -->
@@ -15,7 +22,8 @@
   </div>
 
   <!-- Empty state -->
-  <div class="empty-state" *ngIf="!(isLoading$ | async) && (conversations$ | async)?.length === 0">
+  <div class="empty-state"
+    *ngIf="!(isLoading$ | async) && (filteredConversations$ | async)?.length === 0 && !searchQuery">
     <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
     </svg>
@@ -23,9 +31,22 @@
     <button class="btn-start-chat" (click)="startNewConversation()">Start a new chat</button>
   </div>
 
+  <!-- No search results -->
+  <div class="no-results-state"
+    *ngIf="!(isLoading$ | async) && (filteredConversations$ | async)?.length === 0 && searchQuery">
+    <svg class="no-results-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      <line x1="8" y1="8" x2="14" y2="14"></line>
+      <line x1="14" y1="8" x2="8" y2="14"></line>
+    </svg>
+    <p>Không tìm thấy cuộc trò chuyện nào</p>
+    <span class="search-hint">Thử tìm kiếm với từ khóa khác</span>
+  </div>
+
   <!-- Conversation items -->
   <div class="conversations-wrapper">
-    <div class="conversation-item" *ngFor="let conv of conversations$ | async"
+    <div class="conversation-item" *ngFor="let conv of filteredConversations$ | async"
       [class.active]="(selectedConversation$ | async)?.id === conv.id" [class.unread]="hasUnread(conv.id)"
       (click)="selectConversation(conv)">
 

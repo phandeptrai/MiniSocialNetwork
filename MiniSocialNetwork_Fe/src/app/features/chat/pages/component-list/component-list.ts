@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Observable, Subscription, combineLatest } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { Conversation } from '../../models/conversation';
 import { User } from '../../models/user';
@@ -18,9 +18,14 @@ import { UserService } from '../../../../core/services/user.service';
 })
 export class ComponentList implements OnInit, OnDestroy {
   conversations$: Observable<Conversation[]>;
+  filteredConversations$: Observable<Conversation[]>;
   selectedConversation$: Observable<Conversation | null>;
   isLoading$: Observable<boolean>;
   unreadConversationIds$: Observable<Set<string>>;
+
+  // Search functionality
+  searchQuery$ = new BehaviorSubject<string>('');
+  searchQuery: string = '';
 
   private currentUser: User | null = null;
   private tokenSub?: Subscription;
@@ -44,6 +49,15 @@ export class ComponentList implements OnInit, OnDestroy {
         return this.processConversations(conversations);
       })
     );
+
+    // Create filtered conversations based on search query
+    this.filteredConversations$ = combineLatest([
+      this.conversations$,
+      this.searchQuery$
+    ]).pipe(
+      map(([conversations, query]) => this.filterConversations(conversations, query))
+    );
+
     this.selectedConversation$ = this.chatState.getSelectedConversation();
     this.isLoading$ = this.chatState.isConversationsLoading();
     this.unreadConversationIds$ = this.chatState.getUnreadConversationIds();
@@ -102,6 +116,46 @@ export class ComponentList implements OnInit, OnDestroy {
   startNewConversation(): void {
     // Logic để mở modal chọn bạn bè sẽ được triển khai sau
     console.log("Starting a new conversation...");
+  }
+
+  /**
+   * Xử lý khi người dùng nhập vào ô tìm kiếm
+   */
+  onSearchChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.searchQuery = input.value;
+    this.searchQuery$.next(this.searchQuery);
+  }
+
+  /**
+   * Xóa nội dung tìm kiếm
+   */
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchQuery$.next('');
+  }
+
+  /**
+   * Lọc danh sách conversations dựa trên từ khóa tìm kiếm
+   * Tìm kiếm theo tên cuộc trò chuyện và nội dung tin nhắn cuối cùng
+   */
+  private filterConversations(conversations: Conversation[], query: string): Conversation[] {
+    if (!query || query.trim() === '') {
+      return conversations;
+    }
+
+    const normalizedQuery = query.toLowerCase().trim();
+
+    return conversations.filter(conv => {
+      // Tìm theo tên cuộc trò chuyện
+      const nameMatch = conv.displayName?.toLowerCase().includes(normalizedQuery) ||
+        conv.name?.toLowerCase().includes(normalizedQuery);
+
+      // Tìm theo nội dung tin nhắn cuối cùng
+      const messageMatch = conv.lastMessageContent?.toLowerCase().includes(normalizedQuery);
+
+      return nameMatch || messageMatch;
+    });
   }
 
 

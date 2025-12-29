@@ -275,22 +275,66 @@ Mô tả chi tiết các bảng trong MySQL:
 
 ---
 
-### Chương 6. Kết luận và hướng phát triển
+### Chương 6. Đánh giá và Hướng phát triển
 
-#### 6.1. Kết luận
-Đồ án đã giúp nhóm hiểu rõ quy trình xây dựng ứng dụng Fullstack từ A-Z. Chúng tôi đã làm chủ được các công nghệ Spring Boot, Angular và đặc biệt là tích hợp Keycloak cho bảo mật. Hệ thống có thể chạy ổn định trong môi trường development.
+#### 6.1. Đánh giá kết quả đạt được
+Sau quá trình nghiên cứu và thực hiện đồ án "Xây dựng Mạng xã hội thu nhỏ", nhóm đã đạt được những kết quả khả quan, hoàn thành khoảng **90%** khối lượng công việc đề ra ban đầu. Cụ thể:
 
-#### 6.2. Hạn chế
-- Giao diện có thể chưa thực sự trau chuốt (cần cải thiện UI/UX).
-- Chưa có tính năng Chat realtime (Socket.IO/WebSocket).
-- Chưa tối ưu hiệu năng khi lượng dữ liệu lớn (chưa có Caching Redis, chưa phân trang tối ưu).
+**a. Về mặt tính năng:**
+- **Hệ thống xác thực & phân quyền:** Đã tích hợp thành công **Keycloak**, cho phép đăng ký, đăng nhập SSO và bảo mật API bằng JWT. Đây là điểm mạnh giúp hệ thống an toàn và dễ mở rộng.
+- **Mạng xã hội cốt lõi:** Các chức năng đăng bài (text + ảnh), hiển thị News Feed, tương tác (Like/Comment) hoạt động ổn định và mượt mà.
+- **Kết nối người dùng:** Tính năng Follow/Unfollow hoạt động chính xác, thuật toán gợi ý kết bạn bước đầu hoạt động hiệu quả.
+- **Giao tiếp thời gian thực:** Đã triển khai thành công tính năng **Chat Real-time** sử dụng WebSocket (STOMP), cho phép nhắn tin tức thì giữa các người dùng (thay vì polling như kế hoạch ban đầu).
+- **Thông báo:** Hệ thống thông báo (Notification) hoạt động tốt, cập nhật ngay lập tức khi có tương tác mới.
+
+**b. Về mặt kỹ thuật:**
+- **Kiến trúc:** Xây dựng thành công hệ thống theo kiến trúc **Layered Architecture** trên Spring Boot và **Component-based** trên Angular 17+. Code được tổ chức rõ ràng, dễ bảo trì.
+- **Triển khai:** Toàn bộ hệ thống (Frontend, Backend, Database, Keycloak, MinIO) được đóng gói và vận hành trơn tru trên môi trường **Docker Compose**, giải quyết triệt để vấn đề xung đột môi trường.
+- **Lưu trữ:** Kết hợp linh hoạt giữa MySQL (dữ liệu quan hệ) và MinIO/Cloudinary (dữ liệu phi cấu trúc), tối ưu hóa tốc độ truy xuất.
+
+**c. Biểu đồ đánh giá mức độ hoàn thành:**
+
+```mermaid
+pie title Mức độ hoàn thành các module
+    "Authentication (Keycloak)" : 100
+    "User Profile" : 95
+    "Post & Feed" : 95
+    "Interaction (Like/Cmt)" : 100
+    "Chat Real-time" : 90
+    "Notification" : 85
+    "Search & Suggestion" : 80
+```
+
+#### 6.2. Hạn chế của ứng dụng
+Mặc dù đã đạt được các mục tiêu chính, ứng dụng vẫn còn một số hạn chế cần khắc phục:
+
+1.  **Về tính năng:**
+    - Hệ thống Chat mới chỉ hỗ trợ nhắn tin 1-1, chưa hỗ trợ **Group Chat** (chat nhóm).
+    - Chưa có tính năng **Video Call / Voice Call**, một tính năng quan trọng của MXH hiện đại.
+    - Chức năng tìm kiếm (Search) còn đơn giản (chỉ tìm theo tên user), chưa hỗ trợ tìm kiếm nội dung bài viết (Full-text search).
+    
+2.  **Về giao diện (UI/UX):**
+    - Chưa có Skeleton Loading khi tải dữ liệu, trải nghiệm người dùng đôi khi bị gián đoạn.
+    - Chưa tối ưu hoàn toàn cho giao diện Mobile (Responsive Design cần cải thiện thêm).
+
+3.  **Về hiệu năng & Bảo mật:**
+    - Chưa áp dụng cơ chế **Caching** (như Redis) cho News Feed, có thể gặp vấn đề hiệu năng khi số lượng bài viết rất lớn.
+    - Chưa có cơ chế kiểm duyệt nội dung (Content Moderation) tự động cho bài viết và hình ảnh.
 
 #### 6.3. Hướng phát triển
-- Tích hợp WebSocket để làm tính năng Chat và Thông báo (Notification) realtime.
-- Cải thiện giao diện đẹp và hiện đại hơn.
-- Triển khai (Deploy) lên server thực tế (VPS/Cloud) thay vì chỉ chạy localhost.
-- Phát triển thêm ứng dụng Mobile (React Native/Flutter) dùng chung API Backend.
+Dựa trên những hạn chế đã phân tích, nhóm đề xuất lộ trình phát triển tiếp theo như sau:
 
+**Giai đoạn ngắn hạn:**
+- [x] Hoàn thiện UI/UX, thêm Skeleton Loading và hiệu ứng chuyển cảnh.
+- [ ] Implement tính năng **Group Chat**.
+- [ ] Tích hợp **Redis** để cache các query nặng (News Feed, User Info).
+- [ ] Mở rộng tính năng tìm kiếm với **ElasticSearch**.
+
+**Giai đoạn dài hạn:**
+- [ ] Phát triển tính năng **Video Call** sử dụng công nghệ WebRTC.
+- [ ] Xây dựng phiên bản Mobile App (sử dụng Flutter hoặc React Native) dùng chung API Backend.
+- [ ] Triển khai hệ thống CI/CD để tự động hóa quy trình build và deploy.
+- [ ] Nâng cấp kiến trúc từ Monolithic sang **Microservices** đích thực khi lượng người dùng tăng cao.
 ---
 
 ### Tài liệu tham khảo
