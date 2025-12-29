@@ -49,6 +49,12 @@ export interface CommentAdmin {
     updatedAt: string;
 }
 
+export interface PostStatistics {
+    labels: string[];
+    values: number[];
+    totalPosts: number;
+}
+
 /**
  * Service để gọi Admin API endpoints
  * Quản lý Users, Posts, Comments
@@ -61,6 +67,16 @@ export class AdminService {
     // Dashboard
     getDashboard(): Observable<AdminDashboard> {
         return this.http.get<AdminDashboard>(`${this.apiUrl}/dashboard`);
+    }
+
+    // Statistics
+    getPostStatistics(days: number = 7): Observable<PostStatistics> {
+        return this.http.get<PostStatistics>(`${this.apiUrl}/statistics/posts?days=${days}`);
+    }
+
+    // Sync users from Keycloak to MySQL
+    syncUsersFromKeycloak(): Observable<{ message: string; syncedCount: number }> {
+        return this.http.post<{ message: string; syncedCount: number }>(`${this.apiUrl}/sync-users`, {});
     }
 
     // Users

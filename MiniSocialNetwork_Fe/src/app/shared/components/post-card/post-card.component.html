@@ -1,7 +1,7 @@
 <article class="post-card" *ngIf="post">
   <!-- Header -->
   <header class="post-header">
-    <div class="avatar">
+    <div class="avatar" (click)="showUserProfile($event)" style="cursor: pointer;">
       <img *ngIf="post.authorAvatarUrl; else defaultAvatar" [src]="post.authorAvatarUrl!" alt="avatar" />
       <ng-template #defaultAvatar>
         <div class="avatar-placeholder"></div>
@@ -108,4 +108,9 @@
       <span class="comment-placeholder">Write a comment...</span>
     </div>
   </div>
+
+  <!-- User Profile Popup -->
+  <app-user-profile-popup [userId]="post.authorId" [currentUserId]="currentUserId" [isOpen]="isProfilePopupOpen()"
+    (closed)="closeUserProfile()">
+  </app-user-profile-popup>
 </article>

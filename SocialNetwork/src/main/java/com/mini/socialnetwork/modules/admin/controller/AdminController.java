@@ -31,6 +31,21 @@ public class AdminController {
         return ResponseEntity.ok(adminService.getDashboard());
     }
 
+    @GetMapping("/statistics/posts")
+    public ResponseEntity<PostStatisticsDto> getPostStatistics(@RequestParam(defaultValue = "7") int days) {
+        log.info("Admin: Getting post statistics for {} days", days);
+        return ResponseEntity.ok(adminService.getPostStatistics(days));
+    }
+
+    @PostMapping("/sync-users")
+    public ResponseEntity<Map<String, Object>> syncUsersFromKeycloak() {
+        log.info("Admin: Syncing users from Keycloak to MySQL");
+        int syncedCount = adminService.syncUsersFromKeycloak();
+        return ResponseEntity.ok(Map.of(
+                "message", "Sync completed successfully",
+                "syncedCount", syncedCount));
+    }
+
     // ==================== USER MANAGEMENT ====================
 
     @GetMapping("/users")

@@ -13,6 +13,9 @@ import com.mini.socialnetwork.modules.comment.entity.Comment;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
+    // Count only non-deleted comments for dashboard statistics
+    long countByIsDeletedFalse();
+
     // Find comments by postId (not deleted)
     Slice<Comment> findByPostIdAndIsDeletedFalseOrderByCreatedAtDesc(UUID postId, Pageable pageable);
 

@@ -18,8 +18,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -41,14 +46,139 @@ public class AdminService {
     private final KeycloakAdminService keycloakAdminService;
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
+    private static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM");
 
     // ==================== DASHBOARD ====================
 
     public AdminDashboardDto getDashboard() {
         return AdminDashboardDto.builder()
                 .totalUsers(userRepository.count())
-                .totalPosts(postRepository.count())
-                .totalComments(commentRepository.count())
+                .totalPosts(postRepository.countByIsDeletedFalse())
+                .totalComments(commentRepository.countByIsDeletedFalse())
+                .build();
+    }
+
+    /**
+     * Sync users từ Keycloak vào MySQL database
+     * Lấy tất cả users từ Keycloak và tạo các user chưa tồn tại trong MySQL
+     * 
+     * @return số lượng users được sync
+     */
+    @Transactional
+    public int syncUsersFromKeycloak() {
+        log.info("Starting sync users from Keycloak to MySQL...");
+
+        List<Map<String, Object>> keycloakUsers = keycloakAdminService.getAllUsers();
+        int syncedCount = 0;
+
+        for (Map<String, Object> kcUser : keycloakUsers) {
+            try {
+                String idStr = (String) kcUser.get("id");
+                UUID userId = UUID.fromString(idStr);
+
+                // Check if user already exists in MySQL
+                if (userRepository.findById(userId).isEmpty()) {
+                    User user = User.builder()
+                            .id(userId)
+                            .username((String) kcUser.get("username"))
+                            .email((String) kcUser.get("email"))
+                            .name(buildFullName(kcUser))
+                            .bio("")
+                            .avatarUrl(null)
+                            .isActive(Boolean.TRUE.equals(kcUser.get("enabled")))
+                            .createdAt(Instant.now())
+                            .updatedAt(Instant.now())
+                            .build();
+
+                    userRepository.save(user);
+                    syncedCount++;
+                    log.info("Synced user: {} ({})", user.getUsername(), userId);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to sync user: {}", e.getMessage());
+            }
+        }
+
+        log.info("Sync completed. {} users synced from Keycloak", syncedCount);
+        return syncedCount;
+    }
+
+    private String buildFullName(Map<String, Object> kcUser) {
+        String firstName = (String) kcUser.get("firstName");
+        String lastName = (String) kcUser.get("lastName");
+
+        if (firstName != null && lastName != null) {
+            return firstName + " " + lastName;
+        } else if (firstName != null) {
+            return firstName;
+        } else if (lastName != null) {
+            return lastName;
+        }
+        return (String) kcUser.get("username");
+    }
+
+    /**
+     * Lấy thống kê số lượng bài đăng theo ngày trong khoảng thời gian
+     * 
+     * @param days Số ngày cần thống kê (ví dụ: 7, 30, 90)
+     * @return PostStatisticsDto chứa labels và values để vẽ biểu đồ
+     */
+    public PostStatisticsDto getPostStatistics(int days) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        LocalDate today = LocalDate.now(zoneId);
+        LocalDate startLocalDate = today.minusDays(days - 1);
+
+        Instant endDate = today.plusDays(1).atStartOfDay(zoneId).toInstant();
+        Instant startDate = startLocalDate.atStartOfDay(zoneId).toInstant();
+
+        log.info("Getting post statistics from {} to {}", startDate, endDate);
+
+        List<Object[]> results = postRepository.countPostsByDateRange(startDate, endDate);
+
+        // Tạo map để điền các ngày không có bài đăng với giá trị 0
+        Map<LocalDate, Long> dateCountMap = new LinkedHashMap<>();
+        LocalDate currentDate = startLocalDate;
+
+        while (!currentDate.isAfter(today)) {
+            dateCountMap.put(currentDate, 0L);
+            currentDate = currentDate.plusDays(1);
+        }
+
+        // Điền dữ liệu từ kết quả query
+        for (Object[] row : results) {
+            try {
+                LocalDate date;
+                if (row[0] instanceof java.sql.Date) {
+                    date = ((java.sql.Date) row[0]).toLocalDate();
+                } else if (row[0] instanceof java.time.LocalDate) {
+                    date = (LocalDate) row[0];
+                } else {
+                    // Fallback: parse string
+                    date = LocalDate.parse(row[0].toString());
+                }
+                Long count = ((Number) row[1]).longValue();
+                dateCountMap.put(date, count);
+            } catch (Exception e) {
+                log.warn("Error parsing date from result: {}", e.getMessage());
+            }
+        }
+
+        List<String> labels = new ArrayList<>();
+        List<Long> values = new ArrayList<>();
+
+        for (Map.Entry<LocalDate, Long> entry : dateCountMap.entrySet()) {
+            labels.add(entry.getKey().format(dateFormatter));
+            values.add(entry.getValue());
+        }
+
+        long totalPosts = values.stream().mapToLong(Long::longValue).sum();
+
+        log.info("Post statistics: {} days, {} total posts", days, totalPosts);
+
+        return PostStatisticsDto.builder()
+                .labels(labels)
+                .values(values)
+                .totalPosts(totalPosts)
                 .build();
     }
 

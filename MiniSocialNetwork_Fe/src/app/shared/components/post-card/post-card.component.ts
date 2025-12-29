@@ -3,11 +3,12 @@ import { Component, EventEmitter, Input, Output, computed, signal, OnChanges, Si
 import { FormsModule } from '@angular/forms';
 import { PostViewModel } from '../../../features/feed/models/post.model';
 import { ImageLightboxComponent } from '../image-lightbox/image-lightbox.component';
+import { UserProfilePopupComponent } from '../user-profile-popup/user-profile-popup.component';
 
 @Component({
   selector: 'app-post-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, ImageLightboxComponent],
+  imports: [CommonModule, FormsModule, ImageLightboxComponent, UserProfilePopupComponent],
   templateUrl: './post-card.component.html',
   styleUrl: './post-card.component.css',
 })
@@ -101,5 +102,18 @@ export class PostCardComponent implements OnChanges {
 
   closeLightbox(): void {
     this.isLightboxOpen.set(false);
+  }
+
+  // User Profile Popup state
+  readonly isProfilePopupOpen = signal(false);
+
+  showUserProfile(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isProfilePopupOpen.set(true);
+  }
+
+  closeUserProfile(): void {
+    this.isProfilePopupOpen.set(false);
   }
 }

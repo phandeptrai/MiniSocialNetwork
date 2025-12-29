@@ -1,0 +1,70 @@
+<div class="popup-overlay" *ngIf="isOpen" (click)="onOverlayClick($event)">
+  <div class="profile-card" (click)="$event.stopPropagation()">
+    <!-- Loading State -->
+    <div class="loading-state" *ngIf="loading()">
+      <div class="loading-spinner"></div>
+      <span>Đang tải...</span>
+    </div>
+
+    <!-- Profile Content -->
+    <ng-container *ngIf="!loading() && user()">
+      <!-- Gradient Header -->
+      <div class="profile-header">
+        <button class="close-btn" (click)="close()">×</button>
+      </div>
+
+      <!-- Content -->
+      <div class="profile-content">
+        <!-- Avatar -->
+        <div class="avatar-wrapper">
+          <img *ngIf="user()!.avatarUrl; else defaultAvatar" 
+               [src]="user()!.avatarUrl" 
+               alt="avatar" 
+               class="avatar" />
+          <ng-template #defaultAvatar>
+            <div class="avatar-placeholder"></div>
+          </ng-template>
+        </div>
+
+        <!-- User Info -->
+        <div class="user-info">
+          <div class="name-section">
+            <h2 class="user-name">{{ user()!.name || user()!.username }}</h2>
+            <p class="username">@{{ user()!.username }}</p>
+            <p class="bio" *ngIf="user()!.bio">{{ user()!.bio }}</p>
+            <p class="bio" *ngIf="!user()!.bio">No bio yet</p>
+          </div>
+          
+          <!-- Follow Button -->
+          <div class="follow-section" *ngIf="!isOwnProfile()">
+            <button 
+              class="follow-btn"
+              [class.following]="isFollowing()"
+              [disabled]="followLoading()"
+              (click)="toggleFollow()">
+              <span *ngIf="followLoading()">⏳</span>
+              <span *ngIf="!followLoading() && isFollowing()">✓ Đang theo dõi</span>
+              <span *ngIf="!followLoading() && !isFollowing()">+ Theo dõi</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+          <div class="stat-item">
+            <span class="stat-value">{{ postCount() }}</span>
+            <span class="stat-label">Posts</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ followerCount() }}</span>
+            <span class="stat-label">Followers</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-value">{{ followingCount() }}</span>
+            <span class="stat-label">Following</span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</div>
