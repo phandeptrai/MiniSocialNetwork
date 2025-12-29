@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output, computed, signal, OnChanges, SimpleChanges } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PostViewModel } from '../../models/post.model';
+import { PostViewModel } from '../../../features/feed/models/post.model';
 import { ImageLightboxComponent } from '../image-lightbox/image-lightbox.component';
 
 @Component({

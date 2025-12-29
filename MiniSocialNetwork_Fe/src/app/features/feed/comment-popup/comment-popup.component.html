@@ -37,7 +37,8 @@
         <div *ngFor="let comment of comments()" class="comment-item">
           <div class="comment-avatar">
             <img *ngIf="comment.avatarUrl" [src]="comment.avatarUrl" [alt]="comment.userName" class="avatar-img" />
-            <div *ngIf="!comment.avatarUrl" class="avatar-placeholder">{{ comment.userName.charAt(0).toUpperCase() }}</div>
+            <div *ngIf="!comment.avatarUrl" class="avatar-placeholder">{{ comment.userName.charAt(0).toUpperCase() }}
+            </div>
           </div>
           <div class="comment-content">
             <div class="comment-header">
@@ -45,8 +46,8 @@
               <span class="comment-time">{{ comment.createdAt | date: 'short' }}</span>
             </div>
             <p *ngIf="comment.content" class="comment-text">{{ comment.content }}</p>
-            <div *ngIf="comment.imageUrl" class="comment-image">
-              <img [src]="comment.imageUrl" alt="Comment image" loading="lazy" />
+            <div *ngIf="comment.imageUrl" class="comment-image" (click)="openLightbox(comment.imageUrl)">
+              <img [src]="comment.imageUrl" alt="Comment image" loading="lazy" class="clickable-image" />
             </div>
           </div>
         </div>
@@ -113,3 +114,7 @@
     </form>
   </div>
 </div>
+
+<!-- Image Lightbox for viewing comment images -->
+<app-image-lightbox [images]="lightboxImages" [isOpen]="isLightboxOpen" [startIndex]="lightboxStartIndex"
+  (closed)="closeLightbox()"></app-image-lightbox>

@@ -4,7 +4,7 @@ import { Subscription, forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { PostCardComponent } from '../../../shared/components/post-card/post-card.component';
 import { CommentPopupComponent } from '../comment-popup/comment-popup.component';
-import { PostViewModel } from '../../../shared/models/post.model';
+import { PostViewModel } from '../models/post.model';
 import { PostService, PostResponse } from '../../../core/services/post.service';
 import { UserService, UserProfile } from '../../../core/services/user.service';
 import { KeycloakApiService } from '../../auth/services/keycloak-api.service';

@@ -1,0 +1,128 @@
+/* ==================== */
+/* Notification Toast Component */
+/* ==================== */
+
+.toast-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(29, 161, 242, 0.2);
+    min-width: 320px;
+    max-width: 420px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    animation: slideIn 0.3s ease-out;
+}
+
+.toast:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(100px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ==================== */
+/* Toast Avatar */
+/* ==================== */
+
+.toast-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid #1da1f2;
+}
+
+.toast-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ==================== */
+/* Toast Content */
+/* ==================== */
+
+.toast-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.toast-header {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.toast-sender {
+    font-weight: 700;
+    color: #14171a;
+    font-size: 15px;
+}
+
+.toast-type {
+    color: #657786;
+    font-size: 13px;
+}
+
+.toast-message {
+    color: #14171a;
+    font-size: 14px;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* ==================== */
+/* Toast Close Button */
+/* ==================== */
+
+.toast-close {
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #657786;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.toast-close:hover {
+    background: #f5f8fa;
+    color: #e0245e;
+}
+
+.toast-close svg {
+    width: 16px;
+    height: 16px;
+}

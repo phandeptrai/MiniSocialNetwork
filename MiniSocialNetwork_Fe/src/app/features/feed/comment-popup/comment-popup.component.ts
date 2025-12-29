@@ -13,9 +13,10 @@ import {
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
-import { PostViewModel } from '../../../shared/models/post.model';
+import { PostViewModel } from '../models/post.model';
 import { CommentService, CommentResponse, SliceResponse } from '../../../core/services/comment.service';
 import { UserService, UserProfile } from '../../../core/services/user.service';
+import { ImageLightboxComponent } from '../../../shared/components/image-lightbox/image-lightbox.component';
 
 export interface CommentViewModel {
     id: string;
@@ -30,7 +31,7 @@ export interface CommentViewModel {
 @Component({
     selector: 'app-comment-popup',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule],
+    imports: [CommonModule, ReactiveFormsModule, ImageLightboxComponent],
     templateUrl: './comment-popup.component.html',
     styleUrl: './comment-popup.component.css',
 })
@@ -70,6 +71,11 @@ export class CommentPopupComponent implements OnInit {
     // Image upload
     selectedImage: File | null = null;
     imagePreviewUrl: string | null = null;
+
+    // Lightbox state for viewing comment images
+    isLightboxOpen = false;
+    lightboxImages: string[] = [];
+    lightboxStartIndex = 0;
 
     ngOnInit(): void {
         this.loadComments();
@@ -381,5 +387,21 @@ export class CommentPopupComponent implements OnInit {
      */
     get characterCount(): number {
         return (this.commentForm.get('content')?.value || '').length;
+    }
+
+    /**
+     * Mở lightbox để xem ảnh comment phóng to
+     */
+    openLightbox(imageUrl: string): void {
+        this.lightboxImages = [imageUrl];
+        this.lightboxStartIndex = 0;
+        this.isLightboxOpen = true;
+    }
+
+    /**
+     * Đóng lightbox
+     */
+    closeLightbox(): void {
+        this.isLightboxOpen = false;
     }
 }

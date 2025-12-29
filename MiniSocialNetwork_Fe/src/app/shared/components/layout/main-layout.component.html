@@ -1,0 +1,64 @@
+<div class="layout-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1 class="logo">MiniSocial</h1>
+        </div>
+
+        <!-- User Profile -->
+        <div class="user-profile">
+            <div class="avatar">
+                <img [src]="userAvatarUrl" [alt]="userName" />
+            </div>
+            <div class="user-info">
+                <span class="user-name">{{ userName }}</span>
+                <span class="user-handle">&#64;{{ userHandle }}</span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="nav-menu">
+            <a routerLink="/feed" routerLinkActive="active" class="nav-item" (click)="onNavClick('/feed')">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-text">Feed</span>
+            </a>
+            <a routerLink="/people" routerLinkActive="active" class="nav-item" (click)="onNavClick('/people')">
+                <span class="nav-icon">👥</span>
+                <span class="nav-text">People</span>
+            </a>
+            <a routerLink="/chat" routerLinkActive="active" class="nav-item" (click)="onNavClick('/chat')">
+                <span class="nav-icon">💬</span>
+                <span class="nav-text">Messages</span>
+            </a>
+            <a routerLink="/notifications" routerLinkActive="active" class="nav-item notification-nav"
+                (click)="onNotificationsClick()">
+                <span class="nav-icon-wrapper">
+                    <span class="nav-icon">🔔</span>
+                    <span class="notification-badge" *ngIf="unreadCount > 0">{{ unreadCount > 99 ? '99+' : unreadCount
+                        }}</span>
+                </span>
+                <span class="nav-text">Notifications</span>
+            </a>
+            <a routerLink="/profile" routerLinkActive="active" class="nav-item" (click)="onNavClick('/profile')">
+                <span class="nav-icon">👤</span>
+                <span class="nav-text">My Profile</span>
+            </a>
+        </nav>
+
+        <!-- Sign Out -->
+        <div class="sidebar-footer">
+            <button class="sign-out-btn" (click)="signOut()">
+                <span class="nav-icon">🚪</span>
+                <span class="nav-text">Sign Out</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" #mainContent>
+        <router-outlet></router-outlet>
+    </main>
+</div>
+
+<!-- Notification Toast -->
+<app-notification-toast></app-notification-toast>
