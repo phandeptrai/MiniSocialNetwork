@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.service;
+package com.mini.socialnetwork.modules.notification.service;
 
 import java.time.Instant;
 import java.util.List;
@@ -9,9 +9,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.mini.socialnetwork.model.Notification;
-import com.mini.socialnetwork.model.Notification.Type;
-import com.mini.socialnetwork.repository.NotificationRepository;
+import com.mini.socialnetwork.modules.notification.entity.Notification;
+import com.mini.socialnetwork.modules.notification.entity.Notification.Type;
+import com.mini.socialnetwork.modules.notification.repository.NotificationRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

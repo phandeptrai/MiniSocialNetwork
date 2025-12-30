@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.controller;
+package com.mini.socialnetwork.modules.notification.controller;
 
 import java.util.UUID;
 
@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mini.socialnetwork.model.Notification;
-import com.mini.socialnetwork.service.NotificationService;
+import com.mini.socialnetwork.modules.notification.entity.Notification;
+import com.mini.socialnetwork.modules.notification.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,20 +1,19 @@
-package com.mini.socialnetwork.controller;
+package com.mini.socialnetwork.modules.user.controller;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import com.mini.socialnetwork.dto.UpdateProfileRequest;
-import com.mini.socialnetwork.dto.UserProfileDto;
-import com.mini.socialnetwork.model.User;
-import com.mini.socialnetwork.repository.UserRepository;
-import com.mini.socialnetwork.service.UserProfileService;
+import com.mini.socialnetwork.modules.user.dto.UpdateProfileRequest;
+import com.mini.socialnetwork.modules.user.entity.User;
+import com.mini.socialnetwork.modules.user.repository.UserRepository;
+import com.mini.socialnetwork.modules.user.service.UserProfileService;
+import com.mini.socialnetwork.modules.auth.service.KeycloakAdminService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +26,7 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final UserProfileService userProfileService;
-    private final com.mini.socialnetwork.modules.auth.service.KeycloakAdminService keycloakAdminService;
+    private final KeycloakAdminService keycloakAdminService;
 
     /**
      * Get current user's profile
@@ -126,7 +125,7 @@ public class UserController {
     public ResponseEntity<?> getUserById(@PathVariable String id) {
         try {
             java.util.Map<String, Object> keycloakUser = keycloakAdminService.getUserById(id);
-            
+
             if (keycloakUser == null) {
                 return ResponseEntity.notFound().build();
             }
@@ -140,7 +139,7 @@ public class UserController {
             user.setEmail((String) keycloakUser.get("email"));
             user.setName(((String) keycloakUser.getOrDefault("firstName", "")) + " "
                     + ((String) keycloakUser.getOrDefault("lastName", "")));
-            user.setBio(localUserOpt.isPresent() ? localUserOpt.get().getBio() : ""); 
+            user.setBio(localUserOpt.isPresent() ? localUserOpt.get().getBio() : "");
             user.setAvatarUrl(localUserOpt.isPresent() ? localUserOpt.get().getAvatarUrl() : null);
 
             return ResponseEntity.ok(user);

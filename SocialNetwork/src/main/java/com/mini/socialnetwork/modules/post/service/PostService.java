@@ -24,7 +24,7 @@ import com.mini.socialnetwork.modules.post.entity.Post;
 import com.mini.socialnetwork.modules.post.dto.PostResponse;
 import com.mini.socialnetwork.modules.post.repository.PostRepository;
 import com.mini.socialnetwork.modules.comment.repository.CommentRepository;
-import com.mini.socialnetwork.repository.FollowRepository;
+import com.mini.socialnetwork.modules.follow.repository.FollowRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

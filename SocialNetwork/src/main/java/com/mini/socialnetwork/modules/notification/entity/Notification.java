@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.model;
+package com.mini.socialnetwork.modules.notification.entity;
 
 import java.time.Instant;
 import java.util.UUID;

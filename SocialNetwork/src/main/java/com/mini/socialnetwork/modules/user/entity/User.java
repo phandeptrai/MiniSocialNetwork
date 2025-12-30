@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.model;
+package com.mini.socialnetwork.modules.user.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

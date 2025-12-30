@@ -1,8 +1,8 @@
-package com.mini.socialnetwork.service;
+package com.mini.socialnetwork.modules.user.service;
 
-import com.mini.socialnetwork.dto.UpdateProfileRequest;
-import com.mini.socialnetwork.model.User;
-import com.mini.socialnetwork.repository.UserRepository;
+import com.mini.socialnetwork.modules.user.dto.UpdateProfileRequest;
+import com.mini.socialnetwork.modules.user.entity.User;
+import com.mini.socialnetwork.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

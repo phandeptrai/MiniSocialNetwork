@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.controller;
+package com.mini.socialnetwork.modules.follow.controller;
 
 import java.util.List;
 import java.util.Map;
@@ -6,8 +6,8 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.mini.socialnetwork.dto.UserProfileDto;
-import com.mini.socialnetwork.service.FollowService;
+import com.mini.socialnetwork.modules.follow.dto.UserProfileDto;
+import com.mini.socialnetwork.modules.follow.service.FollowService;
 
 import lombok.RequiredArgsConstructor;
 

@@ -9,7 +9,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
 
-import com.mini.socialnetwork.model.Notification;
+import com.mini.socialnetwork.modules.notification.entity.Notification;
 import com.mini.socialnetwork.modules.chat.dto.DeleteMessageEvent;
 import com.mini.socialnetwork.modules.chat.dto.DeleteMessageRequest;
 import com.mini.socialnetwork.modules.chat.dto.SendMessageRequest;
@@ -17,7 +17,7 @@ import com.mini.socialnetwork.modules.chat.entity.Conversation;
 import com.mini.socialnetwork.modules.chat.entity.Message;
 import com.mini.socialnetwork.modules.chat.repository.ConversationRepository;
 import com.mini.socialnetwork.modules.chat.service.MessageService;
-import com.mini.socialnetwork.service.NotificationService;
+import com.mini.socialnetwork.modules.notification.service.NotificationService;
 
 import java.util.Collections;
 

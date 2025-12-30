@@ -20,10 +20,10 @@ import com.mini.socialnetwork.modules.comment.dto.CommentResponse;
 import com.mini.socialnetwork.modules.comment.entity.Comment;
 import com.mini.socialnetwork.modules.comment.service.CommentService;
 import com.mini.socialnetwork.dto.SliceResponse;
-import com.mini.socialnetwork.model.Notification;
+import com.mini.socialnetwork.modules.notification.entity.Notification;
 import com.mini.socialnetwork.modules.post.entity.Post;
 import com.mini.socialnetwork.modules.post.service.PostService;
-import com.mini.socialnetwork.service.NotificationService;
+import com.mini.socialnetwork.modules.notification.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

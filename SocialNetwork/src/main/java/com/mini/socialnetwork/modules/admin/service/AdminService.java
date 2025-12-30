@@ -1,6 +1,6 @@
 package com.mini.socialnetwork.modules.admin.service;
 
-import com.mini.socialnetwork.model.User;
+import com.mini.socialnetwork.modules.user.entity.User;
 import com.mini.socialnetwork.modules.admin.dto.*;
 import com.mini.socialnetwork.modules.auth.service.KeycloakAdminService;
 import com.mini.socialnetwork.modules.chat.repository.MessageRepository;
@@ -8,9 +8,9 @@ import com.mini.socialnetwork.modules.comment.entity.Comment;
 import com.mini.socialnetwork.modules.comment.repository.CommentRepository;
 import com.mini.socialnetwork.modules.post.entity.Post;
 import com.mini.socialnetwork.modules.post.repository.PostRepository;
-import com.mini.socialnetwork.repository.FollowRepository;
-import com.mini.socialnetwork.repository.NotificationRepository;
-import com.mini.socialnetwork.repository.UserRepository;
+import com.mini.socialnetwork.modules.follow.repository.FollowRepository;
+import com.mini.socialnetwork.modules.notification.repository.NotificationRepository;
+import com.mini.socialnetwork.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;

@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.model;
+package com.mini.socialnetwork.modules.follow.entity;
 
 import java.io.Serializable;
 import java.util.Objects;

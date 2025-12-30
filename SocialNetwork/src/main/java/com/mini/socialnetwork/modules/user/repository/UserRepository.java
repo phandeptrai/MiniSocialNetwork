@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.repository;
+package com.mini.socialnetwork.modules.user.repository;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.mini.socialnetwork.model.User;
+import com.mini.socialnetwork.modules.user.entity.User;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 

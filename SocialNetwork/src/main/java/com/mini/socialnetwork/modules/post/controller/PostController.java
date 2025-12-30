@@ -24,9 +24,9 @@ import com.mini.socialnetwork.modules.post.dto.PostResponse;
 import com.mini.socialnetwork.modules.post.entity.Post;
 import com.mini.socialnetwork.modules.post.service.PostService;
 import com.mini.socialnetwork.dto.SliceResponse;
-import com.mini.socialnetwork.model.Notification;
-import com.mini.socialnetwork.repository.FollowRepository;
-import com.mini.socialnetwork.service.NotificationService;
+import com.mini.socialnetwork.modules.notification.entity.Notification;
+import com.mini.socialnetwork.modules.follow.repository.FollowRepository;
+import com.mini.socialnetwork.modules.notification.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

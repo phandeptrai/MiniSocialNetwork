@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.service;
+package com.mini.socialnetwork.modules.follow.service;
 
 import java.util.Collections;
 import java.util.List;
@@ -8,11 +8,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.mini.socialnetwork.dto.UserProfileDto;
-import com.mini.socialnetwork.model.Follow;
-import com.mini.socialnetwork.model.FollowId;
+import com.mini.socialnetwork.modules.follow.dto.UserProfileDto;
+import com.mini.socialnetwork.modules.follow.entity.Follow;
+import com.mini.socialnetwork.modules.follow.entity.FollowId;
 import com.mini.socialnetwork.modules.auth.service.KeycloakAdminService;
-import com.mini.socialnetwork.repository.FollowRepository;
+import com.mini.socialnetwork.modules.follow.repository.FollowRepository;
 
 import lombok.RequiredArgsConstructor;
 

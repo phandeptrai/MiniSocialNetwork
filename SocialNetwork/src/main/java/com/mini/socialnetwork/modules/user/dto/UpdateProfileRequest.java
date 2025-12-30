@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.dto;
+package com.mini.socialnetwork.modules.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

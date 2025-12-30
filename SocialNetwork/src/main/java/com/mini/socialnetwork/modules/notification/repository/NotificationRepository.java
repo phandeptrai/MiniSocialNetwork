@@ -1,4 +1,4 @@
-package com.mini.socialnetwork.repository;
+package com.mini.socialnetwork.modules.notification.repository;
 
 import java.util.UUID;
 
@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.mini.socialnetwork.model.Notification;
+import com.mini.socialnetwork.modules.notification.entity.Notification;
 
 /**
  * Repository truy cập dữ liệu Notification.
