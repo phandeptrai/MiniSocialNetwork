@@ -1,0 +1,81 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <div>
+      <h1 class="page-title">📊 Dashboard</h1>
+      <p class="page-subtitle">Tổng quan hệ thống Mini Social Network</p>
+    </div>
+    <button class="sync-btn" (click)="syncUsers()" [disabled]="syncing">
+      {{ syncing ? '🔄 Đang đồng bộ...' : '🔄 Sync Users từ Keycloak' }}
+    </button>
+  </div>
+  <div class="sync-message" *ngIf="syncMessage" [class.success]="syncSuccess">
+    {{ syncMessage }}
+  </div>
+
+  <div class="stats-grid" *ngIf="dashboard">
+    <div class="stat-card users" routerLink="/admin/users">
+      <div class="stat-icon">👥</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ dashboard.totalUsers }}</span>
+        <span class="stat-label">Users</span>
+      </div>
+    </div>
+
+    <div class="stat-card posts" routerLink="/admin/posts">
+      <div class="stat-icon">📝</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ dashboard.totalPosts }}</span>
+        <span class="stat-label">Posts</span>
+      </div>
+    </div>
+
+    <div class="stat-card comments" routerLink="/admin/comments">
+      <div class="stat-icon">💬</div>
+      <div class="stat-info">
+        <span class="stat-value">{{ dashboard.totalComments }}</span>
+        <span class="stat-label">Comments</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post Statistics Chart Section -->
+  <div class="chart-section" *ngIf="isBrowser">
+    <div class="chart-header">
+      <h2 class="chart-title">📈 Thống kê bài đăng</h2>
+      <div class="time-filter">
+        <button 
+          *ngFor="let option of timeOptions" 
+          class="filter-btn"
+          [class.active]="selectedDays === option.value"
+          (click)="onTimeFilterChange(option.value)">
+          {{ option.label }}
+        </button>
+      </div>
+    </div>
+    
+    <div class="chart-container" *ngIf="!chartLoading && !chartError">
+      <div class="chart-summary">
+        <span class="summary-label">Tổng bài đăng trong {{ selectedDays }} ngày:</span>
+        <span class="summary-value">{{ statistics?.totalPosts || 0 }}</span>
+      </div>
+      <canvas #chartCanvas></canvas>
+    </div>
+    
+    <div class="chart-loading" *ngIf="chartLoading">
+      <span>🔄 Đang tải biểu đồ...</span>
+    </div>
+    
+    <div class="chart-error" *ngIf="chartError">
+      <span>❌ {{ chartError }}</span>
+      <button class="retry-btn" (click)="loadPostStatistics()">Thử lại</button>
+    </div>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    <span>🔄 Loading...</span>
+  </div>
+
+  <div class="error" *ngIf="error">
+    <span>❌ {{ error }}</span>
+  </div>
+</div>

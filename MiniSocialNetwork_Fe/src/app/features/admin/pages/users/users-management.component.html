@@ -1,0 +1,59 @@
+<div class="management-page">
+    <div class="page-header">
+        <h1 class="page-title">👥 Users Management</h1>
+        <p class="page-subtitle">Quản lý tài khoản người dùng</p>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" [(ngModel)]="searchTerm" placeholder="🔍 Search users..." (input)="filterUsers()" />
+    </div>
+
+    <div class="table-container" *ngIf="!loading">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Avatar</th>
+                    <th>Username</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Followers</th>
+                    <th>Following</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let user of filteredUsers">
+                    <td>
+                        <img [src]="user.avatarUrl || getDefaultAvatar(user.name)" class="avatar" />
+                    </td>
+                    <td><span class="username">@{{ user.username }}</span></td>
+                    <td>{{ user.name || '-' }}</td>
+                    <td>{{ user.email || '-' }}</td>
+                    <td class="center">{{ user.followersCount }}</td>
+                    <td class="center">{{ user.followingCount }}</td>
+                    <td>
+                        <span class="badge" [class.active]="user.isActive" [class.inactive]="!user.isActive">
+                            {{ user.isActive ? 'Active' : 'Inactive' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-toggle" (click)="toggleUserStatus(user)"
+                                [title]="user.isActive ? 'Deactivate' : 'Activate'">
+                                {{ user.isActive ? '🚫' : '✅' }}
+                            </button>
+                            <button class="btn-delete" (click)="deleteUser(user)" title="Delete">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="empty-state" *ngIf="filteredUsers.length === 0">
+            <span>No users found</span>
+        </div>
+    </div>
+
+    <div class="loading" *ngIf="loading">🔄 Loading...</div>
+</div>

@@ -1,0 +1,56 @@
+<div class="notifications-container">
+    <div class="notifications-header">
+        <h1>Thông báo</h1>
+        <button class="mark-all-btn" (click)="markAllAsRead()" *ngIf="hasUnread">
+            Đánh dấu tất cả đã đọc
+        </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" *ngIf="isLoading">
+        <div class="spinner"></div>
+        <span>Đang tải...</span>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="!isLoading && notifications.length === 0">
+        <div class="empty-icon">🔔</div>
+        <h3>Chưa có thông báo</h3>
+        <p>Bạn sẽ nhận thông báo khi có người gửi tin nhắn cho bạn.</p>
+    </div>
+
+    <!-- Notifications list -->
+    <div class="notifications-list" *ngIf="!isLoading && notifications.length > 0">
+        <div class="notification-item" *ngFor="let notification of notifications" [class.unread]="!notification.isRead"
+            (click)="handleNotificationClick(notification)">
+
+            <div class="notification-avatar">
+                <img [src]="notification.senderAvatarUrl" [alt]="notification.senderName" />
+                <div class="notification-type-icon" [ngClass]="notification.type.toLowerCase()">
+                    {{ getTypeIcon(notification.type) }}
+                </div>
+            </div>
+
+            <div class="notification-content">
+                <div class="notification-text">
+                    <span class="sender-name">{{ notification.senderName }}</span>
+                    <span class="action-text">{{ getActionText(notification.type) }}</span>
+                </div>
+                <div class="notification-message" *ngIf="notification.message">
+                    {{ truncateMessage(notification.message) }}
+                </div>
+                <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
+            </div>
+
+            <div class="unread-indicator" *ngIf="!notification.isRead"></div>
+        </div>
+
+        <!-- Load more button -->
+        <button class="load-more-btn" *ngIf="hasMore && !isLoadingMore" (click)="loadMore()">
+            Xem thêm
+        </button>
+        <div class="loading-more" *ngIf="isLoadingMore">
+            <div class="spinner small"></div>
+        </div>
+    </div>
+</div>
