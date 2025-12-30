@@ -3,7 +3,8 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { KeycloakApiService } from '../../features/auth/services/keycloak-api.service';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { catchError, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { map, switchMap, catchError } from 'rxjs/operators';
 
 /**
  * Functional Interceptor để tự động đính kèm Bearer Token vào các request API.
@@ -38,13 +39,36 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(clonedReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Khi nhận lỗi 401 Unauthorized, redirect về trang login
-      // Nhưng bỏ qua nếu là request /api/users/me (có thể fail cho user mới)
-      if (error.status === 401 && !req.url.includes('/api/users/me')) {
-        console.warn('🔐 Token expired or invalid. Redirecting to login...');
-        keycloakApi.logout();
-        router.navigate(['/login']);
+      // Nếu lỗi 401 Unauthorized
+      // Bỏ qua request /api/users/me (check user exists) và request lấy token (để tránh lặp vô hạn)
+      if (error.status === 401 &&
+        !req.url.includes('/api/users/me') &&
+        !req.url.includes('/protocol/openid-connect/token')) {
+
+        console.log('🔄 Access token expired. Attempting to refresh...');
+
+        return keycloakApi.refreshToken().pipe(
+          switchMap((tokenRes) => {
+            console.log('✅ Token refreshed successfully.');
+            // Clone request cũ với token mới
+            const newReq = req.clone({
+              setHeaders: {
+                Authorization: `Bearer ${tokenRes.access_token}`
+              }
+            });
+            // Retry request
+            return next(newReq);
+          }),
+          catchError((refreshErr) => {
+            console.warn('🔐 Refresh token failed or expired. Redirecting to login...', refreshErr);
+            // Nếu refresh fail -> Logout
+            keycloakApi.logout();
+            router.navigate(['/login']);
+            return throwError(() => refreshErr);
+          })
+        );
       }
+
       return throwError(() => error);
     })
   );
